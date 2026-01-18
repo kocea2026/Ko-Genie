@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KOCEA - 기계설비 유지관리자 경력신고</title>
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kocea2026.github.io/Ko-Genie/">
+    <meta property="og:title" content="기계설비 유지관리자 경력신고">
+    <meta property="og:description" content="Ko-Genie와 함께 간편하게 입력하세요!">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jura:wght@300;500;700&display=swap" rel="stylesheet">
@@ -35,7 +40,6 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             display: flex; justify-content: center; align-items: center; overflow: hidden; margin-top: 15vh; 
         }
-
         .lamp-video-wrapper { width: 100%; height: 100%; position: absolute; bottom: 0; display: flex; justify-content: center; align-items: flex-end; mix-blend-mode: screen; }
         .lamp-video { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: screen; transform: scale(1.2); transform-origin: center 40%;}
 
@@ -45,7 +49,6 @@
             font-size: 1.8rem; font-weight: 800; color: #ffffff; text-align: center;
             text-shadow: 0 0 20px rgba(0, 154, 218, 1); line-height: 1.3; word-break: keep-all; z-index: 20;
         }
-
         .glass-pill-btn {
             position: absolute; bottom: 250px; width: 280px; padding: 15px 0; 
             font-size: 1.2rem; border-radius: 50px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px);
@@ -53,14 +56,12 @@
             box-shadow: 0 0 20px rgba(0, 154, 218, 1); transition: all 0.3s ease; z-index: 100;
         }
         .glass-pill-btn:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-3px); }
-
         .footer-credit {
             position: absolute; bottom: 30px; width: 100%; text-align: center; z-index: 100;
             font-family: 'Jura', sans-serif; font-size: 1.0rem; font-weight: 500; letter-spacing: 3px;
             display: flex; align-items: center; justify-content: center; gap: 8px; color: rgba(255,255,255,0.7);
         }
         .ferro-text { background: linear-gradient(90deg, #00F0FF 0%, #8A2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
         .fade-in-up { opacity: 0; transform: translateY(30px); animation: fadeInUp 1.2s ease forwards; }
         @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
@@ -74,7 +75,7 @@
 <body>
 
 <div id="intro-overlay">
-    <video autoplay muted loop playsinline id="bg-video">
+    <video autoplay muted loop playsinline id="bg-video" preload="auto">
         <source src="./intro.mp4" type="video/mp4">
     </video>
     
@@ -107,24 +108,25 @@
         const v2 = document.getElementById('video2');
         const bgV = document.getElementById('bg-video');
 
-        // GitHub Pages에서 자동 재생이 막히는 경우를 대비한 강제 실행 로직
-        const playVideo = (video) => {
+        // GitHub Pages/모바일 대응 강제 재생 함수
+        const forcePlay = (video) => {
             if (video) {
-                video.play().catch(error => {
-                    console.log("Autoplay prevented. User interaction might be needed.");
+                video.play().catch(() => {
+                    console.log("자동 재생을 위해 사용자 상호작용이 필요할 수 있습니다.");
                 });
             }
         };
 
-        playVideo(v1);
-        playVideo(bgV);
+        forcePlay(v1);
+        forcePlay(bgV);
 
+        // video1이 끝나면 video2로 교체 및 재생
         if(v1 && v2) {
-            v1.addEventListener('ended', function() {
+            v1.onended = () => {
                 v1.style.display = 'none';
                 v2.style.display = 'block';
                 v2.play();
-            });
+            };
         }
     });
 
@@ -133,15 +135,120 @@
         intro.style.transition = 'opacity 0.8s';
         intro.style.opacity = '0';
         setTimeout(() => { 
-            // GitHub Pages 경로 대응: main.html이 같은 폴더에 있어야 합니다.
             window.location.href = './main.html'; 
         }, 800);
     }
 </script>
 
 <script type="module">
-    /* 사용자님의 기존 Three.js 코드를 여기에 그대로 붙여넣으세요 */
-    // ... (KOCEA 텍스트 및 토러스 생성 로직)
+    import * as THREE from "three";
+    import { FontLoader } from "jsm/loaders/FontLoader.js";
+    import { TextGeometry } from "jsm/geometries/TextGeometry.js";
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 7);
+
+    const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector(".webgl"), antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 2.5); scene.add(ambientLight);
+    const pointLight = new THREE.PointLight(0xffffff, 8); pointLight.position.set(5, 5, 5); scene.add(pointLight);
+
+    const target = new THREE.Vector2();
+    const current = new THREE.Vector2();
+    let textGroup = new THREE.Group();
+    let initialTextX = 0;
+
+    // 1. KOCEA 텍스트 생성
+    const fontLoader = new FontLoader();
+    fontLoader.load(
+        "https://raw.githubusercontent.com/danielyl123/person/refs/heads/main/fonts/helvetiker_regular.typeface.json",
+        (font) => {
+            const message = "KOCEA";
+            const letterSpacing = 0.2;
+            let xOffset = 0;
+            Array.from(message).forEach((letter) => {
+                const geometry = new TextGeometry(letter, {
+                    font: font, size: 1.1, depth: 0.25, curveSegments: 8,
+                    bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.03, bevelOffset: 0, bevelSegments: 5,
+                });
+                geometry.computeBoundingBox();
+                const width = geometry.boundingBox.max.x - geometry.boundingBox.min.x;
+                const material = new THREE.MeshPhysicalMaterial({ color: 0x0000ff, emissive: 0x0044ff, emissiveIntensity: 2, transparent: true, opacity: 0.8, metalness: 0.8, roughness: 0.2 });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.x = xOffset;
+                textGroup.add(mesh);
+                const wireMaterial = new THREE.MeshBasicMaterial({ color: 0x88ccff, wireframe: true, transparent: true, opacity: 0.3 });
+                const wireMesh = new THREE.Mesh(geometry, wireMaterial);
+                wireMesh.position.x = xOffset;
+                textGroup.add(wireMesh);
+                xOffset += (width + letterSpacing);
+            });
+            initialTextX = - (xOffset - letterSpacing) / 2;
+            textGroup.position.x = initialTextX;
+            textGroup.position.y = 2.5;
+            scene.add(textGroup);
+        }
+    );
+
+    // 2. 토러스 고리 생성 (사용자님 설정값 그대로 적용)
+    const torusGeometry = new THREE.TorusGeometry(1.5, 0.35, 25, 100);
+    const torusMaterial = new THREE.MeshPhysicalMaterial({ 
+        color: 0x00F0FF, emissive: 0x0099DA, emissiveIntensity: 3.5, 
+        transparent: true, opacity: 0.4, metalness: 0.9, roughness: 0.1, side: THREE.DoubleSide 
+    });
+    const torus = new THREE.Mesh(torusGeometry, torusMaterial);
+    const wireframeTorus = new THREE.Mesh(torusGeometry, new THREE.MeshBasicMaterial({ color: 0xccffff, wireframe: true, transparent: true, opacity: 0.15 }));
+    torus.add(wireframeTorus);
+    torus.position.y = 2.9;
+    scene.add(torus);
+
+    const handleMove = (x, y) => {
+        target.x = (x / window.innerWidth) - 0.5;
+        target.y = (y / window.innerHeight) - 0.5;
+    };
+    window.addEventListener('mousemove', (e) => handleMove(e.clientX, e.clientY));
+    window.addEventListener('deviceorientation', (e) => {
+        if (e.beta !== null && e.gamma !== null) {
+            const x = (e.gamma + 30) / 60 * window.innerWidth;
+            const y = (e.beta - 30) / 60 * window.innerHeight;
+            handleMove(x, y);
+        }
+    });
+
+    const clock = new THREE.Clock();
+    const tick = () => {
+        const elapsedTime = clock.getElapsedTime();
+        current.x += (target.x - current.x) * 0.05;
+        current.y += (target.y - current.y) * 0.05;
+
+        torus.rotation.x = elapsedTime * 0.4;
+        torus.rotation.y = elapsedTime * 0.3;
+        torusMaterial.emissiveIntensity = 2.5 + Math.sin(elapsedTime * 2) * 1;
+
+        torus.position.x = current.x * 1.5;
+        torus.position.y = 2.9 + (-current.y * 1.5);
+        torus.rotation.z = current.x * 0.5;
+
+        if (textGroup) {
+            textGroup.position.x = initialTextX + (current.x * 3);
+            textGroup.position.y = 2.5 + (-current.y * 3);
+            textGroup.rotation.y = current.x * 0.3;
+            textGroup.rotation.x = current.y * 0.3;
+        }
+
+        renderer.render(scene, camera);
+        requestAnimationFrame(tick);
+    };
+    tick();
+
+    window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
 </script>
 </body>
 </html>
