@@ -4,9 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>KOCEA - 기계설비 유지관리자 경력신고</title>
+    
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kocea2026.github.io/Ko-Genie/">
+    <meta property="og:title" content="기계설비 유지관리자 경력신고">
+    <meta property="og:description" content="Ko-Genie와 함께 간편하게 입력하세요!">
+    <meta property="og:image" content="https://kocea2026.github.io/Ko-Genie/kakao-og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jura:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 
     <script type="importmap">
         {
@@ -23,121 +33,83 @@
         #intro-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 9999; background-color: #000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            display: flex; flex-direction: column; justify-content: flex-start; /* 모바일 대응을 위해 상단 정렬 기준 */
+            align-items: center;
+            padding-top: 15vh; /* 기본 상단 여백 */
         }
         
         #bg-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.5; }
         .webgl { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; outline: none; pointer-events: none; }
         
-        /* 컨텐츠 레이아웃 */
+        /* 반응형 레이아웃 컨테이너 */
         .intro-content { 
             position: relative; z-index: 10; width: 100%; height: 100%; 
-            display: flex; flex-direction: column; 
-            justify-content: center; /* PC에서는 아래 로직으로 인해 약간 하단 배치됨 */
-            align-items: center; 
+            display: flex; flex-direction: column; align-items: center; 
             padding: 20px; box-sizing: border-box;
         }
         
-        /* 램프 유리 상자 스타일 */
         .lamp-glass-box {
             position: relative; 
-            width: 100%; max-width: 550px; /* PC에서 약간 더 넓게 */
-            /* aspect-ratio 제거: 내용물에 따라 높이 유동적 조절 */
-            min-height: 350px; 
-            
-            background: rgba(255, 255, 255, 0.05); 
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 30px;
-            box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.5);
-            
-            /* 내부 정렬: 세로 배치 */
-            display: flex; 
-            flex-direction: column; 
-            justify-content: flex-start; 
-            align-items: center; 
-            overflow: hidden; 
-            
-            /* 위치 하향 조정 (3D 텍스트와 겹치지 않게) */
-            margin-top: 15vh; 
+            width: 100%; max-width: 500px; 
+            aspect-ratio: 16 / 9;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 30px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            display: flex; justify-content: center; align-items: center; overflow: hidden; 
             margin-bottom: 3vh;
-            padding-bottom: 20px; /* 하단 영상 여백 */
+            flex-shrink: 0; 
+            order: 2; /* 순서 조정: 타이틀 다음 */
         }
         
-        /* 텍스트 스타일 수정: 상자 안으로 배치 */
-        .main-title {
-            position: relative; /* absolute 제거 */
-            width: 90%;
-            margin-top: 40px; /* 상자 상단 여백 */
-            margin-bottom: 20px; /* 영상과의 간격 */
-            
-            font-size: clamp(1.5rem, 2.5vw, 2.0rem); /* PC에서 적절한 크기 */
-            font-weight: 800; color: #ffffff; text-align: center;
-            text-shadow: 0 0 20px rgba(0, 154, 218, 0.8); 
-            line-height: 1.4; word-break: keep-all; 
-            z-index: 20;
-        }
-        
-        .lamp-video-wrapper { 
-            position: relative; 
-            width: 80%; /* 영상 크기 조절 */
-            flex-grow: 1; /* 남은 공간 채우기 */
-            display: flex; justify-content: center; align-items: flex-end; 
-            mix-blend-mode: screen; 
-        }
-        .lamp-video { 
-            width: 100%; height: auto; 
-            max-height: 250px; /* 영상 높이 제한 */
-            object-fit: contain; 
-            mix-blend-mode: screen; 
-            transform: scale(1.3); transform-origin: center bottom;
-        }
+        .lamp-video-wrapper { width: 100%; height: 100%; position: absolute; bottom: 0; display: flex; justify-content: center; align-items: flex-end; mix-blend-mode: screen; }
+        .lamp-video { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: screen; transform: scale(1.2); transform-origin: center 40%;}
 
-        .glass-pill-btn {
-            position: relative;
-            width: clamp(200px, 40vw, 280px); 
-            padding: 18px 0; 
-            font-size: 1.3rem; border-radius: 50px; 
-            background: rgba(255, 255, 255, 0.1); 
-            backdrop-filter: blur(10px);
-            color: white; font-weight: bold; cursor: pointer; 
-            border: 1px solid rgba(255,255,255,0.3); 
-            box-shadow: 0 0 25px rgba(0, 154, 218, 0.6); 
-            transition: all 0.3s ease; z-index: 100;
-            margin-top: 20px;
+        .main-title {
+            position: relative; 
+            margin-bottom: 20px;
+            width: 90vw; max-width: 600px;
+            font-size: clamp(1.4rem, 4vw, 2.2rem); 
+            font-weight: 800; color: #ffffff; text-align: center;
+            text-shadow: 0 0 20px rgba(0, 154, 218, 1); line-height: 1.3; word-break: keep-all; 
+            z-index: 20;
+            order: 1; /* 제일 상단 */
         }
-        .glass-pill-btn:hover { background: rgba(255, 255, 255, 0.25); transform: translateY(-3px); box-shadow: 0 0 40px rgba(0, 154, 218, 1); }
+        
+        .glass-pill-btn {
+            position: relative; 
+            width: clamp(200px, 50vw, 280px); 
+            padding: 15px 0; 
+            font-size: 1.2rem; border-radius: 50px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px);
+            color: white; font-weight: bold; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); 
+            box-shadow: 0 0 20px rgba(0, 154, 218, 1); transition: all 0.3s ease; z-index: 100;
+            margin-top: 2vh;
+            order: 3;
+        }
+        .glass-pill-btn:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-3px); }
         
         .footer-credit {
             position: absolute; bottom: 30px; width: 100%; text-align: center; z-index: 100;
-            font-family: 'Jura', sans-serif; font-size: 1.0rem; font-weight: 500; letter-spacing: 3px;
-            display: flex; align-items: center; justify-content: center; gap: 8px; color: rgba(255,255,255,0.5);
+            font-family: 'Jura', sans-serif; font-size: clamp(0.8rem, 2vw, 1.0rem); font-weight: 500; letter-spacing: 3px;
+            display: flex; align-items: center; justify-content: center; gap: 8px; color: rgba(255,255,255,0.7);
         }
         .ferro-text { background: linear-gradient(90deg, #00F0FF 0%, #8A2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .fade-in-up { opacity: 0; transform: translateY(30px); animation: fadeInUp 1.2s ease forwards; }
         @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
-        /* 모바일 대응 (가로/세로) */
+        /* 모바일 세로 모드 최적화 */
         @media (max-width: 768px) {
-            .lamp-glass-box { 
-                margin-top: 10vh; 
-                width: 90%;
-            }
-            .main-title { 
-                font-size: 1.4rem; 
-                margin-top: 30px;
-            }
-            .lamp-video { max-height: 200px; transform: scale(1.2); }
+            #intro-overlay { padding-top: 10vh; }
+            .main-title { font-size: 1.6rem; margin-bottom: 30px; }
+            .lamp-glass-box { width: 90%; margin-bottom: 20px; }
         }
 
+        /* 가로 모드 (높이가 낮을 때) 대응 */
         @media (max-height: 500px) and (orientation: landscape) {
-            .intro-content { flex-direction: row; justify-content: center; gap: 30px; }
-            .lamp-glass-box { 
-                width: 45%; height: 80vh; min-height: auto; margin: 0; 
-                justify-content: center;
-            }
-            .main-title { font-size: 1.1rem; margin-top: 10px; margin-bottom: 5px; }
-            .lamp-video { max-height: 150px; }
-            .glass-pill-btn { margin-top: 0; align-self: center; }
+            #intro-overlay { padding-top: 0; justify-content: center; }
+            .intro-content { flex-direction: row; gap: 20px; justify-content: center; align-items: center; }
+            .lamp-glass-box { width: 40vh; margin: 0; aspect-ratio: 16/9; }
+            .main-title { display: none; } /* 공간 부족 시 타이틀 숨김 */
+            .glass-pill-btn { margin-top: 0; }
             .footer-credit { display: none; }
         }
     </style>
@@ -152,9 +124,9 @@
     <canvas class="webgl"></canvas>
 
     <div class="intro-content">
-        <div class="lamp-glass-box fade-in-up" style="animation-delay: 0.3s;">
-            <h2 class="main-title">기계설비 유지관리 경력을<br>간편하게 작성하고 출력해보세요</h2>
-            
+        <h2 class="main-title fade-in-up" style="animation-delay: 0.3s;">기계설비 유지관리 경력을<br>간편하게 작성하고 출력해보세요</h2>
+        
+        <div class="lamp-glass-box fade-in-up" style="animation-delay: 0.6s;">
             <div class="lamp-video-wrapper">
                 <video id="video1" class="lamp-video" autoplay muted playsinline preload="auto">
                     <source src="./video1.mp4" type="video/mp4">
@@ -182,7 +154,7 @@
         const forcePlay = (video) => {
             if (video) {
                 video.play().catch(() => {
-                    console.log("자동 재생 확인 필요");
+                    console.log("Auto-play blocked, user interaction needed.");
                 });
             }
         };
@@ -214,6 +186,7 @@
     import { FontLoader } from "jsm/loaders/FontLoader.js";
     import { TextGeometry } from "jsm/geometries/TextGeometry.js";
 
+    // 1. Scene 설정
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
@@ -227,10 +200,12 @@
     const target = new THREE.Vector2();
     const current = new THREE.Vector2();
     let textGroup = new THREE.Group();
-    let initialTextX = 0;
     let torus;
     
-    // 반응형 크기 조절 함수
+    // 반응형 제어 변수
+    let moveIntensity = 3;
+
+    // 2. 반응형 크기/위치 조절 함수
     function resizeResponsive() {
         const width = window.innerWidth;
         const height = window.innerHeight;
@@ -239,20 +214,50 @@
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);
 
-        // PC 화면에서의 배치 최적화 (3D 객체를 위로 올림)
-        if (width <= 768) { 
-            camera.position.set(0, 0, 10); 
-            if(textGroup) textGroup.position.y = 3.5;
-            if(torus) torus.position.y = 3.9;
+        // 화면 너비에 따른 분기 처리
+        if (width <= 600) { 
+            // [모바일]
+            camera.position.set(0, 0, 11); // 카메라를 더 뒤로 이동
+            
+            if(textGroup) {
+                textGroup.scale.set(0.6, 0.6, 0.6); // 텍스트 크기 60% 축소
+                textGroup.position.y = 4.2; // 위치 상향 조정
+            }
+            if(torus) {
+                torus.scale.set(0.8, 0.8, 0.8);
+                torus.position.y = 4.2;
+            }
+            moveIntensity = 1.0; // 움직임 민감도 낮춤
+
+        } else if (width <= 1024) { 
+            // [태블릿]
+            camera.position.set(0, 0, 9);
+            if(textGroup) {
+                textGroup.scale.set(0.8, 0.8, 0.8);
+                textGroup.position.y = 3.0;
+            }
+            if(torus) {
+                torus.scale.set(0.9, 0.9, 0.9);
+                torus.position.y = 3.2;
+            }
+            moveIntensity = 2.0;
+
         } else { 
-            // PC 데스크탑: 상자가 내려갔으므로 3D 텍스트는 잘 보이도록 위치 유지 또는 미세 조정
+            // [PC]
             camera.position.set(0, 0, 7);
-            if(textGroup) textGroup.position.y = 2.8; // 약간 올림
-            if(torus) torus.position.y = 3.2;
+            if(textGroup) {
+                textGroup.scale.set(1, 1, 1);
+                textGroup.position.y = 2.5;
+            }
+            if(torus) {
+                torus.scale.set(1, 1, 1);
+                torus.position.y = 2.9;
+            }
+            moveIntensity = 3.0;
         }
     }
 
-    // 1. KOCEA 텍스트
+    // 3. 폰트 로드 및 텍스트 생성 (중앙 정렬 로직 개선됨)
     const fontLoader = new FontLoader();
     fontLoader.load(
         "https://raw.githubusercontent.com/danielyl123/person/refs/heads/main/fonts/helvetiker_regular.typeface.json",
@@ -260,13 +265,17 @@
             const message = "KOCEA";
             const letterSpacing = 0.2;
             let xOffset = 0;
+            
+            // (1) 글자 생성
             Array.from(message).forEach((letter) => {
                 const geometry = new TextGeometry(letter, {
                     font: font, size: 1.1, depth: 0.25, curveSegments: 8,
                     bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.03, bevelOffset: 0, bevelSegments: 5,
                 });
+                
                 geometry.computeBoundingBox();
                 const width = geometry.boundingBox.max.x - geometry.boundingBox.min.x;
+                
                 const material = new THREE.MeshPhysicalMaterial({ color: 0x0000ff, emissive: 0x0044ff, emissiveIntensity: 2, transparent: true, opacity: 0.8, metalness: 0.8, roughness: 0.2 });
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.position.x = xOffset;
@@ -279,14 +288,27 @@
                 
                 xOffset += (width + letterSpacing);
             });
-            initialTextX = - (xOffset - letterSpacing) / 2;
-            textGroup.position.x = initialTextX;
+
+            // (2) [핵심] Bounding Box를 이용한 정밀 중앙 정렬
+            const box = new THREE.Box3().setFromObject(textGroup);
+            const center = new THREE.Vector3();
+            box.getCenter(center); // 그룹 전체의 중심점 계산
+
+            // 그룹 내부 객체들을 중심점만큼 역이동시켜 그룹 원점을 중앙으로 맞춤
+            textGroup.children.forEach(child => {
+                child.position.x -= center.x;
+            });
+            
+            // 그룹 자체 위치는 0 (화면 중앙)
+            textGroup.position.x = 0;
             scene.add(textGroup);
+            
+            // 생성 후 반응형 함수 호출하여 크기/위치 최적화
             resizeResponsive();
         }
     );
 
-    // 2. 토러스 고리
+    // 4. 토러스(고리) 생성
     const torusGeometry = new THREE.TorusGeometry(1.5, 0.35, 25, 100);
     const torusMaterial = new THREE.MeshPhysicalMaterial({ 
         color: 0x00F0FF, emissive: 0x0099DA, emissiveIntensity: 3.5, 
@@ -297,36 +319,49 @@
     torus.add(wireframeTorus);
     scene.add(torus);
     
+    // 초기 실행
     resizeResponsive();
 
+    // 5. 인터랙션 (마우스/터치)
     const handleMove = (x, y) => {
         target.x = (x / window.innerWidth) - 0.5;
         target.y = (y / window.innerHeight) - 0.5;
     };
     window.addEventListener('mousemove', (e) => handleMove(e.clientX, e.clientY));
+    
+    // 모바일 자이로 센서
+    window.addEventListener('deviceorientation', (e) => {
+        if (e.beta !== null && e.gamma !== null) {
+            const x = (e.gamma) / 45 * window.innerWidth;
+            const y = (e.beta - 45) / 45 * window.innerHeight;
+            handleMove(x + window.innerWidth/2, y + window.innerHeight/2);
+        }
+    });
 
+    // 6. 애니메이션 루프
     const clock = new THREE.Clock();
     const tick = () => {
         const elapsedTime = clock.getElapsedTime();
         current.x += (target.x - current.x) * 0.05;
         current.y += (target.y - current.y) * 0.05;
 
+        // 반응형 Y 위치값 가져오기
+        const currentYPos = (window.innerWidth <= 600) ? 4.2 : (window.innerWidth <= 1024 ? 3.0 : 2.5);
+
         if(torus) {
             torus.rotation.x = elapsedTime * 0.4;
             torus.rotation.y = elapsedTime * 0.3;
             torusMaterial.emissiveIntensity = 2.5 + Math.sin(elapsedTime * 2) * 1;
 
-            torus.position.x = current.x * 1.5;
-            // 움직임 반영
-            const baseY = (window.innerWidth <= 768) ? 3.9 : 3.2;
-            torus.position.y = baseY + (-current.y * 1.5);
+            // moveIntensity 적용하여 모바일에서 흔들림 제어
+            torus.position.x = current.x * (moveIntensity * 0.5);
+            torus.position.y = currentYPos + (-current.y * (moveIntensity * 0.5));
             torus.rotation.z = current.x * 0.5;
         }
 
         if (textGroup) {
-            const baseY = (window.innerWidth <= 768) ? 3.5 : 2.8;
-            textGroup.position.x = initialTextX + (current.x * 3);
-            textGroup.position.y = baseY + (-current.y * 3);
+            textGroup.position.x = 0 + (current.x * moveIntensity); // 중앙(0) 기준 흔들림
+            textGroup.position.y = currentYPos + (-current.y * moveIntensity);
             textGroup.rotation.y = current.x * 0.3;
             textGroup.rotation.x = current.y * 0.3;
         }
