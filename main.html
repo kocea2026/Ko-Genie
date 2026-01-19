@@ -2,104 +2,139 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
-<title>기계설비 유지관리자 경력확인서 (반응형)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>기계설비 유지관리자 경력확인서 (최종 완성)</title>
 <style>
-    /* --- [기본 및 반응형 레이아웃 설정] --- */
+    /* --- [1. 기본 레이아웃 설정] --- */
     :root {
-        --base-width: 210mm; /* A4 너비 */
+        --base-width: 210mm; 
+        --base-height: 297mm; 
         --content-bg: #555;
+        --nav-height-pc: 70px;
+        --nav-height-mobile: 50px;
     }
 
     body { 
         background-color: var(--content-bg); 
-        margin: 0; 
-        padding: 0; 
+        margin: 0; padding: 0; 
         font-family: 'Malgun Gothic', 'Dotum', sans-serif; 
-        overflow-x: hidden; /* 가로 스크롤 방지 (스케일링으로 처리) */
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        overflow: hidden; /* 스크롤 방지 */
+        width: 100vw; height: 100vh;
+        display: flex; flex-direction: column; align-items: center;
+        padding-top: var(--nav-height-pc); 
     }
 
-    /* 반응형 래퍼: 스케일링의 기준점 */
+    /* --- [2. 상단 고정 내비게이션 바] --- */
+    .top-nav {
+        position: fixed; top: 0; left: 0; width: 100%; height: var(--nav-height-pc); z-index: 9999;
+        display: flex; align-items: center; justify-content: center; gap: 15px;
+        background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .nav-btn {
+        padding: 8px 16px; font-size: 14px; font-weight: bold; color: white;
+        border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 8px; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.1s;
+    }
+    .nav-btn:active { transform: scale(0.95); }
+
+    .btn-orange { background: rgba(255, 140, 0, 0.7); }
+    .btn-blue   { background: rgba(41, 128, 185, 0.6); }
+    .btn-green  { background: rgba(39, 174, 96, 0.6); }
+    .btn-pink   { background: rgba(255, 105, 180, 0.6); }
+    .btn-red    { background: rgba(192, 57, 43, 0.6); }
+
+    /* --- [3. 계산기 패널] --- */
+    .calc-panel {
+        position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 9998;
+        display: none; flex-direction: column; gap: 10px; padding: 15px 20px; width: 200px;
+        background: rgba(255, 140, 0, 0.95); border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 16px; backdrop-filter: blur(10px); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); color: white;
+    }
+    .calc-panel.show { display: flex; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+    .calc-toggle { position: absolute; right: -25px; top: 10px; width: 25px; height: 30px; background: rgba(255, 140, 0, 0.8); border-radius: 0 8px 8px 0; cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 12px; color: white; }
+    .calc-header { font-weight: bold; font-size: 11pt; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 8px; margin-bottom: 5px; text-align: center; }
+    .calc-row { display: flex; justify-content: space-between; align-items: center; }
+    .calc-label { font-size: 10pt; } .calc-value { font-weight: bold; font-size: 16pt; } .calc-unit { font-size: 10pt; margin-left: 2px; }
+
+    /* --- [4. 반응형 래퍼] --- */
     #responsive-wrapper {
-        width: var(--base-width);
-        transform-origin: top center; /* 중앙 상단 기준 축소 */
-        transition: transform 0.2s ease;
-        margin-top: 20px;
-        margin-bottom: 80px; /* 모바일 하단 버튼 공간 확보 */
-        box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        width: var(--base-width); height: var(--base-height);
+        transform-origin: top center; transition: transform 0.2s ease;
+        margin-top: 10px; background-color: white; box-shadow: 0 0 15px rgba(0,0,0,0.5);
     }
-
     .page-container {
-        background-color: white; 
-        width: 100%; /* 래퍼에 맞춤 */
-        min-height: 297mm; 
-        padding: 10mm 15mm; 
-        box-sizing: border-box; 
-        position: relative;
-        display: flex;
-        flex-direction: column;
+        background-color: white; width: 100%; height: 100%; padding: 10mm 15mm;
+        box-sizing: border-box; position: relative; display: flex; flex-direction: column;
     }
 
-    /* --- [기존 스타일 유지 및 보완] --- */
+    /* --- [5. 테이블 및 입력 필드 스타일] --- */
     table { width: 100%; border-collapse: collapse; margin: 0; table-layout: fixed; }
-    
-    th, td { 
-        border: 1px solid #000; 
-        padding: 1px 3px; 
-        vertical-align: middle; 
-        word-break: keep-all; 
-        font-size: 8.5pt;
-        height: 24px;
-        color: #000;
-    }
-    
+    th, td { border: 1px solid #000; padding: 1px 3px; vertical-align: middle; word-break: keep-all; font-size: 8.5pt; height: 24px; color: #000; }
     .no-side-outer tr th:first-child, .no-side-outer tr td:first-child { border-left: none !important; }
     .no-side-outer tr th:last-child, .no-side-outer tr td:last-child { border-right: none !important; }
     th { background-color: #e6e6e6; text-align: center; font-weight: normal; letter-spacing: -0.5px; }
     .border-top-thick { border-top: 2px solid #000 !important; }
     .border-bottom-thick { border-bottom: 2px solid #000 !important; }
     
-    /* 입력 필드 스타일 */
     input, textarea, select {
         width: 100%; height: 100%; border: none; padding: 0; margin: 0;
         font-family: inherit; font-size: 8.5pt;
         background-color: transparent; outline: none; box-sizing: border-box;
-        vertical-align: middle; color: #000;
-        border-radius: 0; /* 모바일 사파리 등 기본 스타일 제거 */
-        -webkit-appearance: none;
+        vertical-align: middle; color: #000; -webkit-appearance: none; border-radius: 0;
     }
-    select { 
-        padding-right: 15px; /* 화살표 공간 */
+    select {
+        padding-right: 15px; 
         background: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M0 0 L5 5 L10 0' fill='none' stroke='%23000' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 2px center;
         background-size: 8px;
     }
-    
     input:focus, textarea:focus, select:focus { background-color: #e8f0fe; }
-    .empty-value { color: #999 !important; }
-    ::placeholder { color: #999; font-size: 8pt; text-align: center; opacity: 0.7; }
     input:disabled, select:disabled { background-color: #f0f0f0; color: #aaa; cursor: not-allowed; }
+    
+    /* 필수값 미입력 시 빨간 테두리 */
+    .required-missing { border: 2px solid #ff3333 !important; background-color: rgba(255, 51, 51, 0.05) !important; border-radius: 3px; }
+    
     .center-text { text-align: center; }
     .left-text { text-align: left !important; padding-left: 5px; }
     .long-label { font-size: 7pt; letter-spacing: -0.8px; line-height: 1.1; }
     .nowrap-text { white-space: nowrap; }
 
-    /* 데이트피커 스타일 */
-    input[type="date"] { position: relative; }
-    input[type="date"]::-webkit-calendar-picker-indicator {
-        position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%;
-        opacity: 0; cursor: pointer;
+    /* ★★★ [날짜 입력 필드 디자인 핵심] ★★★ */
+    /* 기본 상태: 글자 투명, 돋보기 표시 */
+    input[type="date"] { 
+        position: relative; text-align: center; color: transparent; padding: 0; cursor: pointer;
+    }
+    /* 크롬/엣지용 실제 텍스트 숨김 처리 */
+    input[type="date"]::-webkit-datetime-edit { color: transparent; }
+    
+    /* 포커스 되거나 유효한 값(required 충족)이 있을 때만 글자 보이기 */
+    input[type="date"]:focus, 
+    input[type="date"]:valid { 
+        color: #000; 
+    }
+    input[type="date"]:focus::-webkit-datetime-edit, 
+    input[type="date"]:valid::-webkit-datetime-edit { 
+        color: #000; 
     }
 
-    /* 툴팁 스타일 */
+    /* 돋보기 아이콘 스타일 */
+    input[type="date"]::-webkit-calendar-picker-indicator { 
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; cursor: pointer; 
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23555555'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E");
+        background-position: center; background-repeat: no-repeat; background-size: contain; width: 14px; height: 14px; opacity: 0.7; margin-left: 2px;
+    }
+    /* 값이 선택되면(valid) 돋보기 숨김 -> 날짜만 보이게 */
+    input[type="date"]:valid::-webkit-calendar-picker-indicator { background-image: none !important; opacity: 0; }
+
+    /* 툴팁 */
     .custom-tooltip {
         position: absolute; z-index: 1000; pointer-events: none; opacity: 0; transition: opacity 0.3s ease;
         padding: 8px 12px; border-radius: 8px; font-size: 8pt; white-space: nowrap; font-weight: bold;
-        background-color: #222; color: white;
-        border: 2px solid transparent;
+        background-color: #222; color: white; border: 2px solid transparent;
         background-image: linear-gradient(#222, #222), linear-gradient(135deg, #ff00cc, #3333ff, #00ccff);
         background-origin: border-box; background-clip: padding-box, border-box;
         box-shadow: 0 0 10px rgba(0, 204, 255, 0.5);
@@ -107,97 +142,87 @@
     .custom-tooltip.show { opacity: 1; }
     .tooltip-container { position: relative; }
 
-    /* --- [모바일/반응형 UI 컨트롤] --- */
+    .footer-wrapper { margin-top: auto; display: flex; flex-direction: column; justify-content: flex-end; }
     
-    /* 버튼 바 (PC: 상단 우측, 모바일: 하단 고정) */
-    .btn-bar { 
-        position: fixed; z-index: 9999; display: flex; gap: 10px;
-        backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-        transition: all 0.3s ease;
+    /* ★★★ [재직 체크박스 커스텀] ★★★ */
+    .working-check-label {
+        display: inline-flex; align-items: center; cursor: pointer; margin-left: 5px; font-size: 9pt;
+    }
+    /* 실제 체크박스 숨기고 커스텀 박스 생성 */
+    .working-check-label input {
+        appearance: none; -webkit-appearance: none;
+        width: 14px; height: 14px;
+        background-color: #fff;
+        border: 1px solid #000; /* 검은 테두리 */
+        margin-right: 4px;
+        position: relative;
+        cursor: pointer;
+        border-radius: 0;
+    }
+    /* 체크 시 '✔' 표시 */
+    .working-check-label input:checked::after {
+        content: '✔';
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 12px;
+        color: black;
+        font-weight: bold;
+        line-height: 1;
     }
 
-    /* 참여기간 계산기 패널 (반응형) */
-    .calc-panel {
-        position: fixed; top: 20px; left: 20px; z-index: 999;
-        display: flex; flex-direction: column; gap: 5px;
-        padding: 10px 15px; width: 140px;
-        background: rgba(255, 140, 0, 0.85); 
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        border-radius: 12px;
-        color: white; font-family: 'Malgun Gothic', sans-serif;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        transition: transform 0.3s;
-    }
-    .calc-panel.collapsed { transform: translateX(-130px); opacity: 0.5; }
-    .calc-toggle { position: absolute; right: -25px; top: 5px; width: 25px; height: 25px; background: orange; border-radius: 0 5px 5px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; }
-
-    .calc-header { font-weight: bold; font-size: 10pt; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 5px; margin-bottom: 5px; text-align: center; }
-    .calc-row { display: flex; justify-content: space-between; align-items: center; }
-    .calc-label { font-size: 9pt; }
-    .calc-value { font-weight: bold; font-size: 14pt; }
-    .calc-unit { font-size: 9pt; }
-
-    button { 
-        padding: 10px 14px; font-size: 13px; cursor: pointer; 
-        border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; font-weight: bold; color: white; 
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2); white-space: nowrap;
-    }
-
-    /* 버튼 색상 */
-    .btn-blue { background: #2980b9; }
-    .btn-green { background: #27ae60; }
-    .btn-pink { background: #e84393; }
-    .btn-red { background: #c0392b; }
-
-    /* PC 화면 설정 (> 768px) */
-    @media screen and (min-width: 769px) {
-        .btn-bar { top: 20px; right: 20px; flex-direction: row; }
-    }
-
-    /* 모바일 화면 설정 (<= 768px) 및 가로모드 */
-    @media screen and (max-width: 768px), screen and (max-height: 600px) {
-        body { padding-bottom: 70px; /* 하단 바 공간 */ }
+    /* --- [6. 미디어 쿼리 (모바일 화면 최적화)] --- */
+    @media screen and (max-width: 768px) {
+        body { padding-top: var(--nav-height-mobile); justify-content: flex-start; }
         
-        #responsive-wrapper { margin-top: 10px; }
-
-        /* 하단 고정 네비게이션 바 */
-        .btn-bar { 
-            top: auto; bottom: 0; left: 0; right: 0;
-            width: 100%; height: 60px;
-            background: rgba(30, 30, 30, 0.9);
-            justify-content: space-around;
-            align-items: center;
-            padding: 0 10px;
-            box-sizing: border-box;
-            gap: 5px;
+        .top-nav { 
+            height: var(--nav-height-mobile); padding: 0 2px; gap: 2px;
+            display: grid; grid-template-columns: repeat(5, 1fr); 
         }
         
-        .btn-bar button {
-            flex: 1; padding: 8px 0; font-size: 11px; border-radius: 6px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 44px;
+        .nav-btn { 
+            padding: 2px 0; font-size: 9.5px; letter-spacing: -0.5px; word-break: keep-all;
+            width: 100%; height: 40px; border-radius: 6px; flex-direction: column; gap: 1px;
         }
 
-        /* 계산기 패널 위치 조정 */
-        .calc-panel { top: 10px; left: 10px; transform: scale(0.9); transform-origin: top left; }
+        .calc-panel { top: 55px; width: 90%; }
+        .calc-toggle { display: flex; }
+        #responsive-wrapper { margin-top: 5px; }
     }
 
-    /* 인쇄 모드 */
+    /* --- [7. 인쇄 모드 설정] --- */
     @media print {
-        @page { size: A4; margin: 10mm 15mm 0mm 15mm; }
-        body { background: white; padding: 0; margin: 0; height: 100%; display: block; overflow: visible; }
-        #responsive-wrapper { 
-            transform: none !important; 
-            width: 100% !important; 
-            margin: 0 !important; 
-            box-shadow: none !important;
-        }
-        .page-container { border: none; padding: 0; width: 100%; }
-        .btn-bar, .calc-panel, .custom-tooltip, .calc-toggle { display: none !important; }
+        /* ★★★ 브라우저 출력 문구(날짜, URL 등) 제거 ★★★ */
+        @page { size: A4; margin: 0; }
         
-        /* 인쇄시 인풋 스타일 초기화 */
-        input, textarea, select { -webkit-appearance: none; appearance: none; border: none; background: transparent; }
+        body { background: white; padding: 0; margin: 0; height: 100%; overflow: visible; display: block; }
+        .top-nav, .calc-panel, .custom-tooltip { display: none !important; }
+        
+        #responsive-wrapper { 
+            transform: none !important; width: 100% !important; height: auto !important; margin: 0 !important; box-shadow: none !important; 
+        }
+        .page-container { 
+            border: none; width: 100%; height: 297mm; 
+            /* 여백을 패딩으로 확보 */
+            padding: 10mm 15mm; 
+        }
+        
+        .footer-wrapper { margin-top: auto !important; }
+        input, textarea, select { background: transparent !important; }
+        
+        .empty-value { color: transparent !important; } 
         select { background-image: none; padding-right: 0; }
+        
+        /* 날짜 필드 인쇄 시 돋보기 숨김 */
+        input[type="date"] { color: transparent; } 
+        input[type="date"]:valid { color: #000; }
+        input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; }
+        
+        .required-missing { border: none !important; background-color: transparent !important; }
+        
+        /* 인쇄 시 재직 버튼/안내문구 숨김 */
+        .working-check-label { display: none !important; }
+        ::placeholder { color: transparent !important; }
     }
 </style>
 </head>
@@ -205,9 +230,17 @@
 
 <input type="file" id="file_input" style="display:none" accept=".json" onchange="loadFromFile(this)">
 
+<nav class="top-nav">
+    <button class="nav-btn btn-orange" onclick="toggleCalcPanel()">📅 참여기간 계산기</button>
+    <button class="nav-btn btn-blue" onclick="saveToFile()">💾 저장</button>
+    <button class="nav-btn btn-green" onclick="triggerFileLoad()">📂 열기</button>
+    <button class="nav-btn btn-pink" onclick="validateAndPrint()">🖨️ 인쇄</button>
+    <button class="nav-btn btn-red" onclick="if(confirm('내용을 초기화 하시겠습니까?')) location.reload();">🔄 초기화</button>
+</nav>
+
 <div class="calc-panel" id="calcPanel">
     <div class="calc-toggle" onclick="document.getElementById('calcPanel').classList.toggle('collapsed')">◀</div>
-    <div class="calc-header">📅 참여기간 계산기</div>
+    <div class="calc-header">📅 참여기간 자동 계산</div>
     <div class="calc-row">
         <span class="calc-label">연번 1</span>
         <div><span id="panel_days_1" class="calc-value">0</span><span class="calc-unit">일</span></div>
@@ -216,13 +249,6 @@
         <span class="calc-label">연번 2</span>
         <div><span id="panel_days_2" class="calc-value">0</span><span class="calc-unit">일</span></div>
     </div>
-</div>
-
-<div class="btn-bar">
-    <button class="btn-blue" onclick="saveToFile()">💾 저장</button>
-    <button class="btn-green" onclick="triggerFileLoad()">📂 열기</button>
-    <button class="btn-pink" onclick="validateAndPrint()">🖨️ 인쇄</button>
-    <button class="btn-red" onclick="if(confirm('초기화 하시겠습니까?')) location.reload();">🔄 초기화</button>
 </div>
 
 <div id="responsive-wrapper">
@@ -235,7 +261,6 @@
             <h1 style="position: absolute; width: 100%; top: 60%; transform: translateY(-50%); text-align: center; font-size: 20pt; letter-spacing: 5px; margin: 0; padding-right: 150px; box-sizing: border-box;">
                 경력확인서
             </h1>
-            
             <table style="width: 180px; position: absolute; top: -20px; right: 0; border: 2px solid black; height: 40px;">
                 <colgroup><col style="width: 40%"><col style="width: 40%"><col style="width: 40%"></colgroup>
                 <tr>
@@ -265,10 +290,8 @@
 
         <table class="border-top-thick no-side-outer" style="margin-bottom: 10px;">
             <colgroup>
-                <col style="width: 10%;"> 
-                <col style="width: 10%;"> <col style="width: 20%;"> 
-                <col style="width: 12%;"> <col style="width: 18%;"> 
-                <col style="width: 13%;"> <col style="width: 17%;">
+                <col style="width: 10%;"> <col style="width: 10%;"> <col style="width: 20%;"> 
+                <col style="width: 12%;"> <col style="width: 18%;"> <col style="width: 13%;"> <col style="width: 17%;">
             </colgroup>
             <tr>
                 <th rowspan="2">인적<br>사항</th>
@@ -294,10 +317,8 @@
         
         <table class="no-side-outer">
             <colgroup>
-                <col style="width: 10%;"> 
-                <col style="width: 10%;"> <col style="width: 20%;"> 
-                <col style="width: 12%;"> <col style="width: 18%;"> 
-                <col style="width: 13%;"> <col style="width: 17%;">
+                <col style="width: 10%;"> <col style="width: 10%;"> <col style="width: 20%;"> 
+                <col style="width: 12%;"> <col style="width: 18%;"> <col style="width: 13%;"> <col style="width: 17%;">
             </colgroup>
             <tr class="border-top-thick">
                 <th rowspan="3">소속<br>회사</th>
@@ -316,12 +337,12 @@
                 <td colspan="4" style="padding:0; border-right:1px solid #000;">
                     <div style="display:flex; height:100%; width:100%;">
                         <div style="flex:1; border-right:1px solid #000; background:#e6e6e6; display:flex; align-items:center; justify-content:center; font-size:8.5pt;">⑤ 입사일</div>
-                        <div style="flex:1; border-right:1px solid #000; padding:0 2px;"><input type="date" id="join_date" required onchange="validateAllDates(1); validateAllDates(2);"></div>
+                        <div style="flex:1; border-right:1px solid #000; padding:0 2px;"><input type="date" id="join_date" required onchange="validateAllDates(1); validateAllDates(2);" onkeydown="return false;"></div>
                         <div style="flex:1; border-right:1px solid #000; background:#e6e6e6; display:flex; align-items:center; justify-content:center; font-size:8.5pt;">⑥ 퇴사일</div>
                         <div style="flex:1; padding:0 2px; display:flex; align-items:center; justify-content:center;">
-                            <input type="date" id="retire_date" required style="width: 100%;" onchange="validateAllDates(1); validateAllDates(2);">
+                            <input type="date" id="retire_date" required style="width: 100%;" onchange="validateAllDates(1); validateAllDates(2);" onkeydown="return false;">
                             <div id="retire_text" style="display:none; width:100%; text-align:center; font-size:8.5pt;">재직중</div>
-                            <label class="working-check-label" title="현재 근무 중이면 체크하세요" style="display:flex; align-items:center;">
+                            <label class="working-check-label" title="현재 근무 중이면 체크하세요">
                                 <input type="checkbox" id="chk_working" onchange="toggleRetireDate()">재직
                             </label>
                         </div>
@@ -338,13 +359,8 @@
 
         <table class="border-bottom-thick no-side-outer">
             <colgroup>
-                <col style="width: 4%;"> 
-                <col style="width: 24%;"> 
-                <col style="width: 24%;"> 
-                <col style="width: 24%;"> 
-                <col style="width: 24%;">
+                <col style="width: 4%;"> <col style="width: 24%;"> <col style="width: 24%;"> <col style="width: 24%;"> <col style="width: 24%;">
             </colgroup>
-            
             <tr>
                 <th rowspan="5" class="border-bottom-thick">연<br>번</th>
                 <th class="left-text">⑦ 사업기간(착공~준공)</th>
@@ -357,9 +373,7 @@
             <tr>
                 <td colspan="4" style="padding:0; border:none;">
                     <table style="width:100%; border:none;">
-                        <colgroup>
-                            <col style="width:25%;"> <col style="width:25%;"> <col style="width:25%;"> <col style="width:25%;">
-                        </colgroup>
+                        <colgroup><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"></colgroup>
                         <tr>
                             <th class="left-text" style="border-left:none; border-top:none;">⑪ 공사종류</th>
                             <th class="left-text" style="border-top:none;">⑫ 공사(용역)금액(백만원)</th>
@@ -372,9 +386,7 @@
             <tr>
                 <td colspan="4" style="padding:0; border:none;">
                     <table style="width:100%; border:none;"style="width:100%; border-collapse: collapse; table-layout: fixed; border: 1px solid #ccc;">        
-                        <colgroup>
-                            <col style="width:50%;"> <col style="width:18%;"> <col style="width:7%;"> <col style="width:25%;">
-                        </colgroup>
+                        <colgroup><col style="width:50%;"><col style="width:18%;"><col style="width:7%;"><col style="width:25%;"></colgroup>
                         <tr>
                             <th class="left-text" style="border-left:none; border-top:none;">⑮ 공사(용역)개요(150자 이내 빈칸 포함)</th>
                             <th class="left-text" style="border-top:none;">⑯ 담당업무</th>
@@ -387,9 +399,7 @@
             <tr>
                 <td colspan="4" style="padding:0; border:none;">
                     <table style="width:100%; border:none;">
-                        <colgroup>
-                            <col style="width:25%;"> <col style="width:25%;"> <col style="width:25%;"> <col style="width:25%;">
-                        </colgroup>
+                        <colgroup><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"></colgroup>
                         <tr>
                             <th class="left-text" style="border-left:none; border-top:none; border-bottom:1px solid black;">⑲ 적용 공법</th>
                             <th class="left-text" style="border-top:none; border-bottom:1px solid black;">⑳ 적용 융ㆍ복합건설기술</th>
@@ -404,12 +414,15 @@
                 <th rowspan="5" class="border-bottom-thick" style="background:#fff;">1</th>
                 <td style="background-color: #f0f0f0 !important; cursor: not-allowed;"></td>
                 <td colspan="3" class="tooltip-container">
-                    <input type="text" id="proj_name_1" class="left-text e1-req" onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="checkEntry1(); checkHeadquarters(1)">
-                    <div class="custom-tooltip" id="tooltip_proj_name_1">(예시) 00아파트 기계설비 유지관리, 00건물 기계설비 유지관리</div>
+                    <input type="text" id="proj_name_1" class="left-text e1-req" placeholder="※ 클릭하여 예시를 확인해 주세요!" onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="checkEntry1(); checkHeadquarters(1)">
+                    <div class="custom-tooltip" id="tooltip_proj_name_1">(예시) 00아파트 기계설비 유지관리, 00건물 기계설비 유지관리, 00빌딩 기계설비 유지관리, 00대학교 기계설비 유지관리</div>
                 </td>
             </tr>
             <tr>
-                <td><div style="display:flex;"><input type="date" id="part_start_1" required class="e1-req" style="width:48%;" onchange="validateAllDates(1)" oninput="checkEntry1()">~<input type="date" id="part_end_1" required class="e1-req" style="width:48%;" onchange="validateAllDates(1)" oninput="checkEntry1()"></div></td>
+                <td><div style="display:flex;">
+                    <input type="date" id="part_start_1" required class="e1-req" style="width:48%;" onkeydown="return false;" onchange="validateAllDates(1)" oninput="checkEntry1()">~
+                    <input type="date" id="part_end_1" required class="e1-req" style="width:48%;" onkeydown="return false;" onchange="validateAllDates(1)" oninput="checkEntry1()">
+                </div></td>
                 <td colspan="3" style="cursor: not-allowed;"><input type="text" class="left-text" disabled style="cursor: not-allowed;"></td>
             </tr>
             <tr>
@@ -417,8 +430,8 @@
                     <table style="width:100%; border:none;">
                         <colgroup><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"></colgroup>
                         <tr>
-                            <td style="border-left:none; border-top:none;"><input type="text" class="left-text" disabled></td>
-                            <td style="border-top:none;"><input type="text" class="left-text" id="amt_1" disabled></td>
+                            <td style="border-left:none; border-top:none;"><input type="text" class="left-text" disabled title="유지관리자는 해당 사항 없습니다."></td>
+                            <td style="border-top:none;"><input type="text" class="left-text" id="amt_1" disabled title="유지관리자는 해당 사항 없습니다."></td>
                             <td style="border-top:none; text-align: center;">기계</td>
                             <td style="border-top:none; border-right:none; padding-left: 0;">
                                 <select id="spec1" class="left-text e1-req" onchange="checkSelectPlaceholder(this); checkEntry1();">
@@ -434,15 +447,13 @@
                     <table style="width:100%; border:none;">
                         <colgroup><col style="width:50%;"><col style="width:18%;"><col style="width:7%;"><col style="width:25%;"></colgroup>
                         <tr>
-                            <td style="border-left:none; border-top:none;"><input type="text" class="left-text" disabled></td>
+                            <td style="border-left:none; border-top:none;"><input type="text" class="left-text" disabled title="유지관리자는 해당 사항 없습니다."></td>
                             <td style="border-top:none;">
                                 <select id="task1" class="left-text e1-req" style="font-size: 8pt;" onchange="updateResponsibility(1); checkEntry1(); checkSelectPlaceholder(this);">
                                     <option value="">선택</option>
                                 </select>
                             </td>
-                            <td style="border-top:none; padding-right: 0;">
-                                <input type="text" id="resp1" class="left-text" disabled>
-                            </td>
+                            <td style="border-top:none; padding-right: 0;"><input type="text" id="resp1" class="left-text" disabled title="유지관리자는 해당 사항 없습니다."></td>
                             <td style="border-top:none; border-right:none; padding-left: 0;"><input type="text" id="pos_1" class="left-text e1-req" oninput="checkEntry1()"></td>
                         </tr>
                     </table>
@@ -453,10 +464,10 @@
                     <table style="width:100%; border:none;">
                         <colgroup><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"></colgroup>
                         <tr>
-                            <td style="border-left:none; border-top:none; border-bottom:2px solid black;"><input type="text" class="left-text" disabled></td>
-                            <td style="border-top:none; border-bottom:2px solid black;"><input type="text" class="left-text" disabled></td>
-                            <td style="border-top:none; border-bottom:2px solid black;"><input type="text" class="left-text" disabled></td>
-                            <td style="border-top:none; border-bottom:2px solid black; border-right:none;"><input type="text" class="left-text" disabled></td>
+                            <td style="border-left:none; border-top:none; border-bottom:2px solid black;"><input type="text" class="left-text" disabled title="유지관리자는 해당 사항 없습니다."></td>
+                            <td style="border-top:none; border-bottom:2px solid black;"><input type="text" class="left-text" disabled title="유지관리자는 해당 사항 없습니다."></td>
+                            <td style="border-top:none; border-bottom:2px solid black;"><input type="text" class="left-text" disabled title="유지관리자는 해당 사항 없습니다."></td>
+                            <td style="border-top:none; border-bottom:2px solid black; border-right:none;"><input type="text" class="left-text" disabled title="유지관리자는 해당 사항 없습니다."></td>
                         </tr>
                     </table>
                 </td>
@@ -467,12 +478,15 @@
                 <td style="background-color: #f0f0f0 !important; cursor: not-allowed;"></td>
                 
                 <td colspan="3" class="tooltip-container e2-all">
-                    <input type="text" id="proj_name_2" class="left-text e2-req e2-all" onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="checkHeadquarters(2); checkEntry2();" disabled>
-                    <div class="custom-tooltip e2-all" id="tooltip_proj_name_2" style="display: none;">(예시) 00아파트 기계설비 유지관리, 00건물 기계설비 유지관리</div>
+                    <input type="text" id="proj_name_2" class="left-text e2-req e2-all" placeholder="※ 클릭하여 예시를 확인해 주세요!" onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="checkHeadquarters(2); checkEntry2();" disabled>
+                    <div class="custom-tooltip e2-all" id="tooltip_proj_name_2" style="display: none;">(예시) 00아파트 기계설비 유지관리, 00건물 기계설비 유지관리, 00빌딩 기계설비 유지관리, 00대학교 기계설비 유지관리</div>
                 </td>
             </tr>
             <tr class="entry2-row">
-                <td><div style="display:flex;"><input type="date" id="part_start_2" class="e2-req e2-all" style="width:48%;" onchange="validateAllDates(2); checkEntry2();" disabled>~<input type="date" id="part_end_2" class="e2-req e2-all" style="width:48%;" onchange="validateAllDates(2); checkEntry2();" disabled></div></td>
+                <td><div style="display:flex;">
+                    <input type="date" id="part_start_2" required class="e2-req e2-all" style="width:48%;" onkeydown="return false;" onchange="validateAllDates(2); checkEntry2();" disabled>~
+                    <input type="date" id="part_end_2" required class="e2-req e2-all" style="width:48%;" onkeydown="return false;" onchange="validateAllDates(2); checkEntry2();" disabled>
+                </div></td>
                 <td colspan="3" style="cursor: not-allowed;"><input type="text" class="left-text" disabled style="cursor: not-allowed;"></td>
             </tr>
             <tr class="entry2-row">
@@ -480,8 +494,8 @@
                     <table style="width:100%; border:none;">
                         <colgroup><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"></colgroup>
                         <tr>
-                            <td style="border-left:none; border-top:none;"><input type="text" class="left-text e2-all" disabled></td>
-                            <td style="border-top:none;"><input type="text" class="left-text e2-all" disabled></td>
+                            <td style="border-left:none; border-top:none;"><input type="text" class="left-text" disabled title="유지관리자는 해당 사항 없습니다."></td>
+                            <td style="border-top:none;"><input type="text" class="left-text" disabled title="유지관리자는 해당 사항 없습니다."></td>
                             <td style="border-top:none; text-align: center;">기계</td>
                             <td style="border-top:none; border-right:none; padding-left: 0;">
                                 <select id="spec2" class="left-text e2-req e2-all" onchange="checkSelectPlaceholder(this); checkEntry1(); checkEntry2();" disabled>
@@ -497,15 +511,13 @@
                     <table style="width:100%; border:none;">
                         <colgroup><col style="width:50%;"><col style="width:18%;"><col style="width:7%;"><col style="width:25%;"></colgroup>
                         <tr>
-                            <td style="border-left:none; border-top:none;"><input type="text" class="left-text e2-all" disabled></td>
+                            <td style="border-left:none; border-top:none;"><input type="text" class="left-text" disabled title="유지관리자는 해당 사항 없습니다."></td>
                             <td style="border-top:none;">
                                 <select id="task2" class="left-text e2-req e2-all" style="font-size: 8pt;" onchange="updateResponsibility(2); checkSelectPlaceholder(this); checkEntry2();" disabled>
                                     <option value="">선택</option>
                                 </select>
                             </td>
-                            <td style="border-top:none; padding-right: 0;">
-                                <input type="text" id="resp2" class="left-text e2-all" disabled>
-                            </td>
+                            <td style="border-top:none; padding-right: 0;"><input type="text" id="resp2" class="left-text" disabled title="유지관리자는 해당 사항 없습니다."></td>
                             <td style="border-top:none; border-right:none; padding-left: 0;"><input type="text" id="pos_2" class="left-text e2-req e2-all" oninput="checkEntry2()" disabled></td>
                         </tr>
                     </table>
@@ -516,10 +528,10 @@
                     <table style="width:100%; border:none;">
                         <colgroup><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"><col style="width:25%;"></colgroup>
                         <tr>
-                            <td style="border-left:none; border-top:none;"><input type="text" class="left-text e2-all" disabled></td>
-                            <td style="border-top:none;"><input type="text" class="left-text e2-all" disabled></td>
-                            <td style="border-top:none;"><input type="text" class="left-text e2-all" disabled></td>
-                            <td style="border-top:none; border-right:none;"><input type="text" class="left-text e2-all" disabled></td>
+                            <td style="border-left:none; border-top:none;"><input type="text" class="left-text" disabled title="유지관리자는 해당 사항 없습니다."></td>
+                            <td style="border-top:none;"><input type="text" class="left-text" disabled title="유지관리자는 해당 사항 없습니다."></td>
+                            <td style="border-top:none;"><input type="text" class="left-text" disabled title="유지관리자는 해당 사항 없습니다."></td>
+                            <td style="border-top:none; border-right:none;"><input type="text" class="left-text" disabled title="유지관리자는 해당 사항 없습니다."></td>
                         </tr>
                     </table>
                 </td>
@@ -589,47 +601,59 @@
 </div>
 
 <script>
-    /* ★ 반응형 스케일링 스크립트 */
+    /* 1. 반응형 스케일링 스크립트 */
     function resizeForm() {
         const wrapper = document.getElementById('responsive-wrapper');
-        const containerWidth = 210 * 3.78; // A4 너비 (약 794px)
+        const containerWidth = 210 * 3.78; 
+        const containerHeight = 297 * 3.78; 
+        
         const screenWidth = window.innerWidth;
-        const padding = 10; // 여백
+        const screenHeight = window.innerHeight;
+        const navHeight = 50; 
+        const padding = 10; 
 
-        // 화면이 문서 원본보다 작으면 축소
-        if (screenWidth < containerWidth + (padding * 2)) {
-            const scale = (screenWidth - padding * 2) / containerWidth;
-            wrapper.style.transform = `scale(${scale})`;
-            // 스케일링으로 줄어든 만큼 높이 공간 조정 (여백 제거)
-            wrapper.style.marginBottom = `-${(1 - scale) * 100}%`;
+        const availableHeight = screenHeight - navHeight - 10; 
+        const scaleX = (screenWidth - padding * 2) / containerWidth;
+        const scaleY = availableHeight / containerHeight;
+
+        let scale = scaleX;
+        
+        if (screenWidth <= 768) { 
+             scale = Math.min(scaleX, scaleY);
+             wrapper.style.marginBottom = "0px";
         } else {
-            wrapper.style.transform = 'none';
-            wrapper.style.marginBottom = '80px';
+             if (screenWidth < containerWidth + (padding * 2)) {
+                 scale = scaleX;
+                 wrapper.style.marginBottom = `-${(1 - scale) * 100}%`;
+             } else {
+                 scale = 1;
+                 wrapper.style.marginBottom = '50px';
+             }
         }
+        wrapper.style.transform = `scale(${scale})`;
     }
 
-    // 모바일 가로 모드 전환 감지
-    window.addEventListener("orientationchange", function() {
-        setTimeout(resizeForm, 200); // 회전 애니메이션 후 실행
-    });
+    window.addEventListener("orientationchange", function() { setTimeout(resizeForm, 200); });
 
-    /* --- [기존 로직 함수들] --- */
+    /* 2. 계산기 토글 */
+    function toggleCalcPanel() {
+        const panel = document.getElementById('calcPanel');
+        if (panel.style.display === 'flex') { panel.style.display = 'none'; } 
+        else { panel.style.display = 'flex'; panel.classList.add('show'); }
+    }
+
+    /* 3. 자간 조절 */
     function autoFitText(el) {
         el.style.letterSpacing = 'normal';
         let hiddenSpan = document.getElementById('text-measure-span');
         if (!hiddenSpan) {
-            hiddenSpan = document.createElement('span');
-            hiddenSpan.id = 'text-measure-span';
-            hiddenSpan.style.visibility = 'hidden';
-            hiddenSpan.style.position = 'absolute';
-            hiddenSpan.style.whiteSpace = 'nowrap';
+            hiddenSpan = document.createElement('span'); hiddenSpan.id = 'text-measure-span';
+            hiddenSpan.style.visibility = 'hidden'; hiddenSpan.style.position = 'absolute'; hiddenSpan.style.whiteSpace = 'nowrap';
             document.body.appendChild(hiddenSpan);
         }
         const computed = window.getComputedStyle(el);
-        hiddenSpan.style.font = computed.font;
-        hiddenSpan.style.fontSize = computed.fontSize;
-        hiddenSpan.style.fontFamily = computed.fontFamily;
-        hiddenSpan.style.fontWeight = computed.fontWeight;
+        hiddenSpan.style.font = computed.font; hiddenSpan.style.fontSize = computed.fontSize;
+        hiddenSpan.style.fontFamily = computed.fontFamily; hiddenSpan.style.fontWeight = computed.fontWeight;
         hiddenSpan.innerText = el.value;
 
         const textWidth = hiddenSpan.getBoundingClientRect().width;
@@ -643,17 +667,15 @@
                 if (spacing < -3) spacing = -3; 
                 el.style.letterSpacing = spacing + 'px';
             }
-        } else {
-            el.style.letterSpacing = 'normal';
-        }
+        } else { el.style.letterSpacing = 'normal'; }
     }
 
+    /* 4. 저장 */
     async function saveToFile() {
         const data = {};
         document.querySelectorAll('input, select').forEach(el => {
             if (el.id) {
-                if(el.type === 'checkbox') data[el.id] = el.checked;
-                else data[el.id] = el.value;
+                if(el.type === 'checkbox') data[el.id] = el.checked; else data[el.id] = el.value;
             }
         });
         const jsonStr = JSON.stringify(data, null, 2);
@@ -663,66 +685,40 @@
             try {
                 const handle = await window.showSaveFilePicker({
                     suggestedName: fileName,
-                    types: [{
-                        description: 'JSON Files',
-                        accept: { 'application/json': ['.json'] },
-                    }],
+                    types: [{ description: 'JSON Files', accept: { 'application/json': ['.json'] } }],
                 });
-                const writable = await handle.createWritable();
-                await writable.write(jsonStr);
-                await writable.close();
-                alert('파일이 성공적으로 저장되었습니다.');
-                return;
-            } catch (err) {
-                if (err.name === 'AbortError') { return; }
-                console.error('File Picker Error:', err);
-            }
+                const writable = await handle.createWritable(); await writable.write(jsonStr); await writable.close();
+                alert('파일이 성공적으로 저장되었습니다.'); return;
+            } catch (err) { if (err.name === 'AbortError') return; console.error(err); }
         }
-
         const blob = new Blob([jsonStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        const a = document.createElement('a'); a.href = url; a.download = fileName;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
     }
 
     function triggerFileLoad() { document.getElementById('file_input').click(); }
 
+    /* 5. 불러오기 */
     function loadFromFile(input) {
-        const file = input.files[0];
-        if (!file) return;
-
+        const file = input.files[0]; if (!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
                 const data = JSON.parse(e.target.result);
-                
                 for (const [id, val] of Object.entries(data)) {
                     const el = document.getElementById(id);
                     if(el) {
                         if(el.type === 'checkbox') el.checked = val;
-                        else {
-                            el.value = val;
-                            if(id === 'user_addr' || id === 'comp_name' || id === 'comp_addr') {
-                                autoFitText(el);
-                            }
-                        }
+                        else { el.value = val; if(id === 'user_addr' || id === 'comp_name' || id === 'comp_addr') autoFitText(el); }
                         if(el.tagName === 'SELECT') checkSelectPlaceholder(el);
                     }
                 }
                 if(document.getElementById('chk_working').checked) toggleRetireDate();
-
-                updateSpecialty(1);
-                updateSpecialty(2);
-                
+                updateSpecialty(1); updateSpecialty(2);
                 const status = checkEntry1();
                 if(status.allFilled) {
-                    if(data['task1']) updateResponsibility(1);
-                    if(data['task2']) updateResponsibility(2);
+                    if(data['task1']) updateResponsibility(1); if(data['task2']) updateResponsibility(2);
                     if(data['spec1']) document.getElementById('spec1').value = data['spec1'];
                     if(data['resp1']) document.getElementById('resp1').value = data['resp1'];
                     if(data['spec2']) document.getElementById('spec2').value = data['spec2'];
@@ -730,53 +726,36 @@
                     if(document.getElementById('spec1')) checkSelectPlaceholder(document.getElementById('spec1'));
                     if(document.getElementById('spec2')) checkSelectPlaceholder(document.getElementById('spec2'));
                 }
-                updateDayCalculations();
-                alert("파일 불러오기가 완료되었습니다.");
-            } catch (err) {
-                alert("파일 형식이 올바르지 않습니다.");
-            }
+                updateDayCalculations(); alert("파일 불러오기가 완료되었습니다.");
+            } catch (err) { alert("파일 형식이 올바르지 않습니다."); }
         };
-        reader.readAsText(file);
-        input.value = ''; 
+        reader.readAsText(file); input.value = ''; 
     }
 
     function formatNumber(target, type) {
-        let val = target.value.replace(/[^0-9]/g, ''); 
-        let result = val;
-        if(type === 'money') { if(val) result = Number(val).toLocaleString(); }
-        else if(type === 'phone' && val.length > 3) { result = val.substr(0,3)+'-'+val.substr(3,4)+'-'+val.substr(7); }
-        else if(type === 'id') { 
-            if(val.length > 13) val = val.substr(0, 13);
-            if(val.length > 6) { result = val.substr(0,6) + '-' + val.substr(6); } else { result = val; }
-        }
-        else if(type === 'biz' && val.length > 3) { result = val.substr(0,3)+'-'+val.substr(3,2)+'-'+val.substr(5); }
+        let val = target.value.replace(/[^0-9]/g, ''); let result = val;
+        if(type === 'money' && val) result = Number(val).toLocaleString();
+        else if(type === 'phone' && val.length > 3) result = val.substr(0,3)+'-'+val.substr(3,4)+'-'+val.substr(7);
+        else if(type === 'id') { if(val.length > 13) val = val.substr(0, 13); if(val.length > 6) result = val.substr(0,6) + '-' + val.substr(6); else result = val; }
+        else if(type === 'biz' && val.length > 3) result = val.substr(0,3)+'-'+val.substr(3,2)+'-'+val.substr(5);
         target.value = result;
     }
 
     function formatCompPhone(target) {
-        let val = target.value.replace(/[^0-9]/g, ''); 
-        if(val.length > 12) val = val.substr(0, 12); 
-        target.value = val;
+        let val = target.value.replace(/[^0-9]/g, ''); if(val.length > 12) val = val.substr(0, 12); target.value = val;
     }
 
     function showTooltip(input) {
         if(input.disabled) return; 
-        const tooltipId = 'tooltip_' + input.id;
-        const tooltip = document.getElementById(tooltipId);
+        const tooltipId = 'tooltip_' + input.id; const tooltip = document.getElementById(tooltipId);
         if(tooltip) {
             const container = input.closest('.tooltip-container');
-            if(container) {
-                tooltip.style.display = 'block';
-                tooltip.style.top = '24px'; 
-                tooltip.style.left = '0px';
-                tooltip.classList.add('show');
-            }
+            if(container) { tooltip.style.display = 'block'; tooltip.style.top = '24px'; tooltip.style.left = '0px'; tooltip.classList.add('show'); }
         }
     }
 
     function hideTooltip(input) {
-        const tooltipId = 'tooltip_' + input.id;
-        const tooltip = document.getElementById(tooltipId);
+        const tooltipId = 'tooltip_' + input.id; const tooltip = document.getElementById(tooltipId);
         if(tooltip) { tooltip.classList.remove('show'); }
     }
 
@@ -787,37 +766,23 @@
         const taskOptions = ["유지관리", "유지보수및보강"];
         taskSelects.forEach(select => {
             if(select) {
-                taskOptions.forEach(key => {
-                    let option = document.createElement("option");
-                    option.value = key;
-                    option.text = key;
-                    select.appendChild(option);
-                });
+                taskOptions.forEach(key => { let option = document.createElement("option"); option.value = key; option.text = key; select.appendChild(option); });
             }
         });
-        updateSpecialty(1);
-        updateSpecialty(2);
-        
-        const allSelects = document.querySelectorAll('select');
-        allSelects.forEach(el => checkSelectPlaceholder(el));
+        updateSpecialty(1); updateSpecialty(2);
+        const allSelects = document.querySelectorAll('select'); allSelects.forEach(el => checkSelectPlaceholder(el));
         checkEntry1();
     }
 
     function checkSelectPlaceholder(el) {
-        if (!el.value) { el.classList.add('empty-value'); } else { el.classList.remove('empty-value'); }
+        if (!el.value) el.classList.add('empty-value'); else el.classList.remove('empty-value');
     }
 
     function updateSpecialty(idx) {
         const specSelect = document.getElementById('spec' + idx);
-        const selectedJob = "기계"; 
-        specSelect.innerHTML = '<option value="">선택</option>';
+        const selectedJob = "기계"; specSelect.innerHTML = '<option value="">선택</option>';
         if (selectedJob && jobData[selectedJob]) {
-            jobData[selectedJob].forEach(spec => {
-                let option = document.createElement("option");
-                option.value = spec;
-                option.text = spec;
-                specSelect.appendChild(option);
-            });
+            jobData[selectedJob].forEach(spec => { let option = document.createElement("option"); option.value = spec; option.text = spec; specSelect.appendChild(option); });
         }
         checkSelectPlaceholder(specSelect); 
     }
@@ -825,127 +790,78 @@
     function updateResponsibility(idx) { return; }
 
     function toggleRetireDate() {
-        const chk = document.getElementById('chk_working');
-        const dateInput = document.getElementById('retire_date');
-        const textDiv = document.getElementById('retire_text');
-        if (chk.checked) {
-            dateInput.style.display = 'none';
-            textDiv.style.display = 'block';
-            dateInput.value = ''; 
-        } else {
-            dateInput.style.display = 'block';
-            textDiv.style.display = 'none';
-        }
-        validateAllDates(1);
-        validateAllDates(2);
+        const chk = document.getElementById('chk_working'); const dateInput = document.getElementById('retire_date'); const textDiv = document.getElementById('retire_text');
+        if (chk.checked) { dateInput.style.display = 'none'; textDiv.style.display = 'block'; dateInput.value = ''; } 
+        else { dateInput.style.display = 'block'; textDiv.style.display = 'none'; }
+        validateAllDates(1); validateAllDates(2);
     }
 
     function calculateDays(startDateStr, endDateStr) {
         if(!startDateStr || !endDateStr) return 0;
-        const start = new Date(startDateStr);
-        const end = new Date(endDateStr);
+        const start = new Date(startDateStr); const end = new Date(endDateStr);
         if (start > end) return 0;
-        
         const diffTime = Math.abs(end - start);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
-        return diffDays;
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
     }
 
     function updateDayCalculations() {
-        const s1 = document.getElementById('part_start_1').value;
-        const e1 = document.getElementById('part_end_1').value;
-        const days1 = calculateDays(s1, e1);
-        document.getElementById('panel_days_1').innerText = days1;
-
-        const s2 = document.getElementById('part_start_2').value;
-        const e2 = document.getElementById('part_end_2').value;
-        const days2 = calculateDays(s2, e2);
-        document.getElementById('panel_days_2').innerText = days2;
+        const s1 = document.getElementById('part_start_1').value; const e1 = document.getElementById('part_end_1').value;
+        const days1 = calculateDays(s1, e1); document.getElementById('panel_days_1').innerText = days1;
+        const s2 = document.getElementById('part_start_2').value; const e2 = document.getElementById('part_end_2').value;
+        const days2 = calculateDays(s2, e2); document.getElementById('panel_days_2').innerText = days2;
     }
 
     function validateAllDates(idx) {
-        const joinDateEl = document.getElementById('join_date');
-        const retireDateEl = document.getElementById('retire_date');
+        const joinDateEl = document.getElementById('join_date'); const retireDateEl = document.getElementById('retire_date');
         const isWorking = document.getElementById('chk_working').checked;
 
-        if(!joinDateEl.value) joinDateEl.classList.add('required-missing');
-        else joinDateEl.classList.remove('required-missing');
+        if(!joinDateEl.value) joinDateEl.classList.add('required-missing'); else joinDateEl.classList.remove('required-missing');
+        if(!isWorking && !retireDateEl.value) retireDateEl.classList.add('required-missing'); else retireDateEl.classList.remove('required-missing');
 
-        if(!isWorking && !retireDateEl.value) retireDateEl.classList.add('required-missing');
-        else retireDateEl.classList.remove('required-missing');
-
-        const joinDate = joinDateEl.value;
-        const retireDate = retireDateEl.value;
-
+        const joinDate = joinDateEl.value; const retireDate = retireDateEl.value;
         if (!isWorking && joinDate && retireDate && joinDate > retireDate) {
-            alert("입사일/퇴사일: 퇴사일이 입사일보다 앞설 수 없습니다.");
-            document.getElementById('retire_date').value = "";
-            return;
+            alert("입사일/퇴사일: 퇴사일이 입사일보다 앞설 수 없습니다."); document.getElementById('retire_date').value = ""; return;
         }
 
-        const partStartEl = document.getElementById('part_start_' + idx);
-        const partEndEl = document.getElementById('part_end_' + idx);
-
+        const partStartEl = document.getElementById('part_start_' + idx); const partEndEl = document.getElementById('part_end_' + idx);
         if (!partStartEl || !partEndEl) return;
 
-        const partStart = partStartEl.value;
-        const partEnd = partEndEl.value;
-
+        const partStart = partStartEl.value; const partEnd = partEndEl.value;
         if (partStart && partEnd && partStart > partEnd) {
-            alert("참여기간: 종료일이 시작일보다 앞설 수 없습니다.");
-            partEndEl.value = "";
-            updateDayCalculations(); 
-            return;
+            alert("참여기간: 종료일이 시작일보다 앞설 수 없습니다."); partEndEl.value = ""; updateDayCalculations(); return;
         }
-
         if (partStart && joinDate && partStart < joinDate) {
-             alert(`참여기간 시작일(${partStart})은 입사일(${joinDate})보다 빠를 수 없습니다.`);
-             partStartEl.value = "";
-             return;
+             alert(`참여기간 시작일(${partStart})은 입사일(${joinDate})보다 빠를 수 없습니다.`); partStartEl.value = ""; return;
         }
         if (partEnd) {
             if (!isWorking && retireDate && partEnd > retireDate) {
-                alert(`참여기간 종료일(${partEnd})은 퇴사일(${retireDate})보다 늦을 수 없습니다.`);
-                partEndEl.value = "";
-                return;
+                alert(`참여기간 종료일(${partEnd})은 퇴사일(${retireDate})보다 늦을 수 없습니다.`); partEndEl.value = ""; return;
             }
         }
-
-        checkOverlap();
-        updateDayCalculations();
+        checkOverlap(); updateDayCalculations();
     }
 
     function checkOverlap() {
-        const s1 = document.getElementById('part_start_1').value;
-        const e1 = document.getElementById('part_end_1').value;
-        const s2 = document.getElementById('part_start_2').value;
-        const e2 = document.getElementById('part_end_2').value;
-
+        const s1 = document.getElementById('part_start_1').value; const e1 = document.getElementById('part_end_1').value;
+        const s2 = document.getElementById('part_start_2').value; const e2 = document.getElementById('part_end_2').value;
         if (s1 && e1 && s2 && e2) {
             if (s1 <= e2 && e1 >= s2) {
                 alert("오류: 연번1과 연번2의 참여기간은 겹칠 수 없습니다.\n날짜를 다시 확인해주세요.");
-                document.getElementById('part_start_2').value = "";
-                document.getElementById('part_end_2').value = "";
+                document.getElementById('part_start_2').value = ""; document.getElementById('part_end_2').value = "";
                 updateDayCalculations(); 
             }
         }
     }
 
     function checkHeadquarters(idx) {
-        const pName = document.getElementById('proj_name_' + idx);
-        const spec = document.getElementById('spec' + idx);
+        const pName = document.getElementById('proj_name_' + idx); const spec = document.getElementById('spec' + idx);
         if (!pName || !spec) return;
-        
         if (pName.value.trim() === '본사') {
-            spec.innerHTML = '<option value=""></option>';
-            spec.disabled = true;
-            checkSelectPlaceholder(spec); 
+            spec.innerHTML = '<option value=""></option>'; spec.disabled = true; checkSelectPlaceholder(spec); 
         } else {
             if (!pName.disabled) { 
                 spec.disabled = false;
-                if (spec.options.length === 1 && spec.options[0].text === "") {
-                    updateSpecialty(idx);
-                }
+                if (spec.options.length === 1 && spec.options[0].text === "") updateSpecialty(idx);
             }
         }
     }
@@ -954,30 +870,17 @@
         const requiredFields2 = document.querySelectorAll('.e2-req');
         requiredFields2.forEach(el => {
             if (!el.disabled) { 
-                if (!el.value.trim()) {
-                    el.classList.add('required-missing'); 
-                } else {
-                    el.classList.remove('required-missing'); 
-                }
-            } else {
-                el.classList.remove('required-missing'); 
-            }
+                if (!el.value.trim()) el.classList.add('required-missing'); else el.classList.remove('required-missing'); 
+            } else { el.classList.remove('required-missing'); }
         });
     }
 
     function checkEntry1() {
         const requiredFields1 = document.querySelectorAll('.e1-req');
-        let allFilled = true;
-        let isCompletelyEmpty = true; 
-
+        let allFilled = true; let isCompletelyEmpty = true; 
         requiredFields1.forEach(el => {
-            if (el.value.trim()) {
-                isCompletelyEmpty = false;
-                el.classList.remove('required-missing');
-            } else {
-                allFilled = false;
-                el.classList.add('required-missing');
-            }
+            if (el.value.trim()) { isCompletelyEmpty = false; el.classList.remove('required-missing'); }
+            else { allFilled = false; el.classList.add('required-missing'); }
         });
 
         const entry2Rows = document.querySelectorAll('.entry2-row');
@@ -989,13 +892,10 @@
             entry2Rows.forEach(row => row.removeAttribute('title')); 
             const tooltip2 = document.getElementById('tooltip_proj_name_2');
             if(tooltip2) tooltip2.style.display = 'block';
-            checkHeadquarters(2); 
-            checkEntry2();
+            checkHeadquarters(2); checkEntry2();
         } else {
             entry2Inputs.forEach(el => {
-                el.disabled = true;
-                el.value = "";
-                el.classList.remove('required-missing'); 
+                el.disabled = true; el.value = ""; el.classList.remove('required-missing'); 
                 if(el.tagName === 'SELECT') checkSelectPlaceholder(el);
             });
             entry2Rows.forEach(row => row.setAttribute('title', alertMsg)); 
@@ -1007,6 +907,13 @@
     }
 
     function validateAndPrint() {
+        // [모바일 환경 체크]
+        const isMobile = window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+            alert("PC에서 출력해 주시기 바랍니다.");
+            return; 
+        }
+
         const status1 = checkEntry1();
         if (status1.isCompletelyEmpty) { window.print(); return; }
         if (!status1.allFilled) {
@@ -1022,12 +929,8 @@
             const requiredFields2 = document.querySelectorAll('.e2-req');
             let allFilled2 = true;
             requiredFields2.forEach(el => {
-                if (!el.value.trim()) {
-                    allFilled2 = false;
-                    el.classList.add('required-missing'); 
-                } else {
-                    el.classList.remove('required-missing');
-                }
+                if (!el.value.trim()) { allFilled2 = false; el.classList.add('required-missing'); }
+                else { el.classList.remove('required-missing'); }
             });
             if (!allFilled2) {
                 alert("연번2를 작성 중입니다. 연번2의 필수값을 모두 입력해주세요.\n(입력하지 않으려면 연번2 내용을 모두 지워주세요)");
