@@ -2,42 +2,51 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
 <title>기계설비 유지관리자 경력확인서 (반응형)</title>
 <style>
-    /* =========================================
-       1. 기본 및 PC 스타일 (Base Styles)
-       ========================================= */
-    body { 
-        background-color: #555; 
-        padding: 30px; 
-        font-family: 'Malgun Gothic', 'Dotum', sans-serif; 
-        display: flex; 
-        justify-content: center; 
-        margin: 0;
-        min-height: 100vh;
+    /* --- [기본 및 반응형 레이아웃 설정] --- */
+    :root {
+        --base-width: 210mm; /* A4 너비 */
+        --content-bg: #555;
     }
-    
-    /* 문서 래퍼: 모바일 스크롤을 위해 추가 */
-    .document-wrapper {
-        width: fit-content;
-        margin: 0 auto;
+
+    body { 
+        background-color: var(--content-bg); 
+        margin: 0; 
+        padding: 0; 
+        font-family: 'Malgun Gothic', 'Dotum', sans-serif; 
+        overflow-x: hidden; /* 가로 스크롤 방지 (스케일링으로 처리) */
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* 반응형 래퍼: 스케일링의 기준점 */
+    #responsive-wrapper {
+        width: var(--base-width);
+        transform-origin: top center; /* 중앙 상단 기준 축소 */
+        transition: transform 0.2s ease;
+        margin-top: 20px;
+        margin-bottom: 80px; /* 모바일 하단 버튼 공간 확보 */
+        box-shadow: 0 0 15px rgba(0,0,0,0.5);
     }
 
     .page-container {
         background-color: white; 
-        width: 210mm; /* A4 너비 고정 */
-        min-height: 297mm; /* A4 높이 고정 */
+        width: 100%; /* 래퍼에 맞춤 */
+        min-height: 297mm; 
         padding: 10mm 15mm; 
-        box-shadow: 0 0 15px rgba(0,0,0,0.5);
         box-sizing: border-box; 
         position: relative;
         display: flex;
         flex-direction: column;
     }
 
-    /* 테이블 공통 스타일 */
+    /* --- [기존 스타일 유지 및 보완] --- */
     table { width: 100%; border-collapse: collapse; margin: 0; table-layout: fixed; }
+    
     th, td { 
         border: 1px solid #000; 
         padding: 1px 3px; 
@@ -53,16 +62,22 @@
     th { background-color: #e6e6e6; text-align: center; font-weight: normal; letter-spacing: -0.5px; }
     .border-top-thick { border-top: 2px solid #000 !important; }
     .border-bottom-thick { border-bottom: 2px solid #000 !important; }
-
+    
     /* 입력 필드 스타일 */
     input, textarea, select {
         width: 100%; height: 100%; border: none; padding: 0; margin: 0;
         font-family: inherit; font-size: 8.5pt;
         background-color: transparent; outline: none; box-sizing: border-box;
         vertical-align: middle; color: #000;
-        border-radius: 0; /* 모바일 iOS 둥근 모서리 제거 */
+        border-radius: 0; /* 모바일 사파리 등 기본 스타일 제거 */
+        -webkit-appearance: none;
     }
-    select { word-break: keep-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    select { 
+        padding-right: 15px; /* 화살표 공간 */
+        background: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M0 0 L5 5 L10 0' fill='none' stroke='%23000' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 2px center;
+        background-size: 8px;
+    }
+    
     input:focus, textarea:focus, select:focus { background-color: #e8f0fe; }
     .empty-value { color: #999 !important; }
     ::placeholder { color: #999; font-size: 8pt; text-align: center; opacity: 0.7; }
@@ -72,21 +87,19 @@
     .long-label { font-size: 7pt; letter-spacing: -0.8px; line-height: 1.1; }
     .nowrap-text { white-space: nowrap; }
 
-    /* 날짜 입력 스타일 */
-    input[type="date"] {
-        font-family: 'Malgun Gothic', sans-serif; letter-spacing: -0.5px; text-align: center;
-        font-size: 8pt; color: transparent; padding: 0;
+    /* 데이트피커 스타일 */
+    input[type="date"] { position: relative; }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%;
+        opacity: 0; cursor: pointer;
     }
-    input[type="date"]:focus, input[type="date"]:valid { color: #000; }
-    input[type="date"]::-webkit-datetime-edit { color: transparent; }
-    input[type="date"]:focus::-webkit-datetime-edit, input[type="date"]:valid::-webkit-datetime-edit { color: #000; }
-    
+
     /* 툴팁 스타일 */
     .custom-tooltip {
-        position: absolute; z-index: 1000; pointer-events: none; opacity: 0;
-        transition: opacity 0.3s ease; padding: 8px 12px; border-radius: 8px;
-        font-size: 8pt; white-space: nowrap; font-weight: bold;
-        background-color: #222; color: white; border: 2px solid transparent;
+        position: absolute; z-index: 1000; pointer-events: none; opacity: 0; transition: opacity 0.3s ease;
+        padding: 8px 12px; border-radius: 8px; font-size: 8pt; white-space: nowrap; font-weight: bold;
+        background-color: #222; color: white;
+        border: 2px solid transparent;
         background-image: linear-gradient(#222, #222), linear-gradient(135deg, #ff00cc, #3333ff, #00ccff);
         background-origin: border-box; background-clip: padding-box, border-box;
         box-shadow: 0 0 10px rgba(0, 204, 255, 0.5);
@@ -94,174 +107,125 @@
     .custom-tooltip.show { opacity: 1; }
     .tooltip-container { position: relative; }
 
-    /* =========================================
-       2. UI 컨트롤 패널 (버튼바 & 계산기)
-       ========================================= */
-    .btn-bar { 
-        position: fixed; top: 20px; right: 20px; z-index: 999; display: flex; gap: 10px;
-        flex-direction: column; /* PC에서는 세로 정렬이 화면을 덜 가릴 수 있음, 취향에 따라 row */
-        align-items: flex-end;
-    }
+    /* --- [모바일/반응형 UI 컨트롤] --- */
     
+    /* 버튼 바 (PC: 상단 우측, 모바일: 하단 고정) */
+    .btn-bar { 
+        position: fixed; z-index: 9999; display: flex; gap: 10px;
+        backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+
+    /* 참여기간 계산기 패널 (반응형) */
     .calc-panel {
-        position: fixed; top: 450px; left: 20px; z-index: 999;
-        display: flex; flex-direction: column; gap: 10px;
-        padding: 15px 20px; width: 160px;
+        position: fixed; top: 20px; left: 20px; z-index: 999;
+        display: flex; flex-direction: column; gap: 5px;
+        padding: 10px 15px; width: 140px;
         background: rgba(255, 140, 0, 0.85); 
         border: 1px solid rgba(255, 255, 255, 0.4);
-        border-radius: 16px; box-shadow: 0 8px 32px 0 rgba(230, 81, 0, 0.3);
+        border-radius: 12px;
         color: white; font-family: 'Malgun Gothic', sans-serif;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        transition: transform 0.3s;
     }
+    .calc-panel.collapsed { transform: translateX(-130px); opacity: 0.5; }
+    .calc-toggle { position: absolute; right: -25px; top: 5px; width: 25px; height: 25px; background: orange; border-radius: 0 5px 5px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+
+    .calc-header { font-weight: bold; font-size: 10pt; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 5px; margin-bottom: 5px; text-align: center; }
+    .calc-row { display: flex; justify-content: space-between; align-items: center; }
+    .calc-label { font-size: 9pt; }
+    .calc-value { font-weight: bold; font-size: 14pt; }
+    .calc-unit { font-size: 9pt; }
 
     button { 
-        padding: 10px 15px; font-size: 13px; cursor: pointer; 
-        border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; 
-        font-weight: bold; color: white; background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(5px); transition: all 0.3s ease; white-space: nowrap;
+        padding: 10px 14px; font-size: 13px; cursor: pointer; 
+        border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; font-weight: bold; color: white; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2); white-space: nowrap;
     }
-    button:hover { transform: translateY(-2px); }
-    .btn-blue { background: rgba(41, 128, 185, 0.8); }
-    .btn-green { background: rgba(39, 174, 96, 0.8); }
-    .btn-pink { background: rgba(255, 105, 180, 0.8); }
-    .btn-red { background: rgba(192, 57, 43, 0.8); }
 
-    .calc-header { font-weight: bold; font-size: 11pt; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 8px; margin-bottom: 5px; text-align: center; }
-    .calc-row { display: flex; justify-content: space-between; align-items: center; }
-    .calc-label { font-size: 10pt; }
-    .calc-value { font-weight: bold; font-size: 16pt; }
-    .calc-unit { font-size: 10pt; margin-left: 2px; color: #ffe0b2; }
+    /* 버튼 색상 */
+    .btn-blue { background: #2980b9; }
+    .btn-green { background: #27ae60; }
+    .btn-pink { background: #e84393; }
+    .btn-red { background: #c0392b; }
 
-    .footer-wrapper { margin-top: auto; display: flex; flex-direction: column; justify-content: flex-end; }
-    .working-check-label { font-size: 8pt; display: flex; align-items: center; cursor: pointer; background: #f8f9fa; padding: 0 4px; border-radius: 4px; border: 1px solid #ddd; height: 20px; margin-left: 2px; }
-    .required-missing { border: 2px solid #ff3333 !important; background-color: rgba(255, 51, 51, 0.05) !important; }
+    /* PC 화면 설정 (> 768px) */
+    @media screen and (min-width: 769px) {
+        .btn-bar { top: 20px; right: 20px; flex-direction: row; }
+    }
 
-    /* =========================================
-       3. 미디어 쿼리 (반응형 설정)
-       ========================================= */
-    
-    /* 태블릿 및 모바일 (화면 너비 1200px 이하) */
-    @media screen and (max-width: 1200px) {
-        body {
-            padding: 10px;
-            display: block; /* Flex 해제하여 스크롤 자연스럽게 */
-            overflow-x: auto; /* 전체 가로 스크롤 허용 */
-        }
+    /* 모바일 화면 설정 (<= 768px) 및 가로모드 */
+    @media screen and (max-width: 768px), screen and (max-height: 600px) {
+        body { padding-bottom: 70px; /* 하단 바 공간 */ }
+        
+        #responsive-wrapper { margin-top: 10px; }
 
-        /* 컨트롤 패널을 상단으로 이동하여 그리드 배치 */
-        .btn-bar {
-            position: relative; /* 고정 위치 해제 */
-            top: 0; right: 0; 
-            flex-direction: row; /* 가로 배치 */
-            justify-content: center;
-            width: 100%;
-            margin-bottom: 15px;
-            gap: 5px;
-        }
-
-        button {
-            flex: 1; /* 버튼 너비 균등 분할 */
-            font-size: 12px;
-            padding: 12px 5px;
-        }
-
-        .calc-panel {
-            position: relative; /* 고정 위치 해제 */
-            top: 0; left: 0;
-            width: 100%; /* 전체 너비 */
-            box-sizing: border-box;
-            margin-bottom: 15px;
-            flex-direction: row; /* 가로 배치로 변경 */
+        /* 하단 고정 네비게이션 바 */
+        .btn-bar { 
+            top: auto; bottom: 0; left: 0; right: 0;
+            width: 100%; height: 60px;
+            background: rgba(30, 30, 30, 0.9);
             justify-content: space-around;
             align-items: center;
+            padding: 0 10px;
+            box-sizing: border-box;
+            gap: 5px;
         }
         
-        .calc-header { border-bottom: none; padding-bottom: 0; margin-bottom: 0; border-right: 1px solid rgba(255,255,255,0.5); padding-right: 15px; }
-        .calc-row { gap: 10px; }
-
-        .document-wrapper {
-            /* 문서는 원본 크기 유지하되, 화면보다 크면 스크롤 */
-            overflow-x: auto;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        .btn-bar button {
+            flex: 1; padding: 8px 0; font-size: 11px; border-radius: 6px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 44px;
         }
+
+        /* 계산기 패널 위치 조정 */
+        .calc-panel { top: 10px; left: 10px; transform: scale(0.9); transform-origin: top left; }
     }
 
-    /* 모바일 세로 (화면 너비 600px 이하) */
-    @media screen and (max-width: 600px) {
-        .btn-bar {
-            display: grid;
-            grid-template-columns: 1fr 1fr; /* 2열 배치 */
-        }
-        
-        .calc-panel {
-            flex-direction: column; /* 다시 세로 배치 */
-            align-items: stretch;
-        }
-        .calc-header { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 5px; margin-bottom: 5px; }
-        
-        /* 툴팁 모바일 위치 조정 */
-        .custom-tooltip {
-            position: fixed; /* 화면 하단에 고정 */
-            top: auto !important;
-            bottom: 20px;
-            left: 50% !important;
-            transform: translateX(-50%);
-            width: 90%;
-            text-align: center;
-            white-space: normal; /* 줄바꿈 허용 */
-        }
-    }
-
-    /* =========================================
-       4. 인쇄 모드 (Print)
-       ========================================= */
+    /* 인쇄 모드 */
     @media print {
         @page { size: A4; margin: 10mm 15mm 0mm 15mm; }
-        body { background: white; padding: 0; margin: 0; display: block; overflow: visible; }
-        .btn-bar, .calc-panel, .custom-tooltip, #text-measure-span { display: none !important; }
-        .document-wrapper { margin: 0; width: 100%; box-shadow: none; overflow: visible; }
-        .page-container { margin: 0; box-shadow: none; width: 100%; padding: 0; height: auto; min-height: auto; border: none; }
-        .footer-wrapper { margin-top: auto !important; }
+        body { background: white; padding: 0; margin: 0; height: 100%; display: block; overflow: visible; }
+        #responsive-wrapper { 
+            transform: none !important; 
+            width: 100% !important; 
+            margin: 0 !important; 
+            box-shadow: none !important;
+        }
+        .page-container { border: none; padding: 0; width: 100%; }
+        .btn-bar, .calc-panel, .custom-tooltip, .calc-toggle { display: none !important; }
         
-        input, textarea, select { background: transparent !important; appearance: none; -webkit-appearance: none; border: none; }
-        select { padding-right: 0; text-indent: 0.1px; text-overflow: ''; }
-        ::placeholder { color: transparent !important; }
-        .empty-value { color: transparent !important; }
-        input[type="date"] { color: transparent; }
-        input[type="date"]:valid { color: #000; }
-        input[type="date"]::-webkit-datetime-edit { color: transparent; }
-        input[type="date"]:valid::-webkit-datetime-edit { color: #000; }
-        .required-missing { background-color: transparent !important; border: none !important; box-shadow: none !important; }
-        input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; }
-        .working-check-label { display: none !important; }
+        /* 인쇄시 인풋 스타일 초기화 */
+        input, textarea, select { -webkit-appearance: none; appearance: none; border: none; background: transparent; }
+        select { background-image: none; padding-right: 0; }
     }
 </style>
 </head>
-<body onload="initAllFields()">
+<body onload="initAllFields(); resizeForm();" onresize="resizeForm()">
 
 <input type="file" id="file_input" style="display:none" accept=".json" onchange="loadFromFile(this)">
 
-<div class="ui-container">
-    <div class="btn-bar">
-        <button class="btn-blue" onclick="saveToFile()">💾 파일 저장</button>
-        <button class="btn-green" onclick="triggerFileLoad()">📂 파일 불러오기</button>
-        <button class="btn-pink" onclick="validateAndPrint()">🖨️ 인쇄하기</button>
-        <button class="btn-red" onclick="if(confirm('초기화 하시겠습니까?')) location.reload();">🔄 초기화</button>
+<div class="calc-panel" id="calcPanel">
+    <div class="calc-toggle" onclick="document.getElementById('calcPanel').classList.toggle('collapsed')">◀</div>
+    <div class="calc-header">📅 참여기간 계산기</div>
+    <div class="calc-row">
+        <span class="calc-label">연번 1</span>
+        <div><span id="panel_days_1" class="calc-value">0</span><span class="calc-unit">일</span></div>
     </div>
-
-    <div class="calc-panel">
-        <div class="calc-header">📅 참여기간 계산기</div>
-        <div class="calc-row">
-            <span class="calc-label">연번 1</span>
-            <div class="calc-val-box"><span id="panel_days_1" class="calc-value">0</span><span class="calc-unit">일</span></div>
-        </div>
-        <div class="calc-row">
-            <span class="calc-label">연번 2</span>
-            <div class="calc-val-box"><span id="panel_days_2" class="calc-value">0</span><span class="calc-unit">일</span></div>
-        </div>
+    <div class="calc-row">
+        <span class="calc-label">연번 2</span>
+        <div><span id="panel_days_2" class="calc-value">0</span><span class="calc-unit">일</span></div>
     </div>
 </div>
 
-<div class="document-wrapper">
+<div class="btn-bar">
+    <button class="btn-blue" onclick="saveToFile()">💾 저장</button>
+    <button class="btn-green" onclick="triggerFileLoad()">📂 열기</button>
+    <button class="btn-pink" onclick="validateAndPrint()">🖨️ 인쇄</button>
+    <button class="btn-red" onclick="if(confirm('초기화 하시겠습니까?')) location.reload();">🔄 초기화</button>
+</div>
+
+<div id="responsive-wrapper">
     <div class="page-container">
         <div style="font-size: 8pt; margin-bottom: 15px; font-weight:bold;">
             ■ 건설기술 진흥법 시행규칙 [별지 제12호서식] &lt;개정 2024. 4. 23.&gt;
@@ -318,13 +282,13 @@
                 <th>주민등록번호</th>
                 <td><input type="text" id="user_id" class="center-text" oninput="formatNumber(this, 'id')"></td>
                 <th class="long-label">휴대전화번호<br>(전화번호)</th>
-                <td><input type="text" id="user_phone" class="center-text" oninput="formatCompPhone(this)" maxlength="12"></td>
+                <td><input type="tel" id="user_phone" class="center-text" oninput="formatCompPhone(this)" maxlength="12"></td>
             </tr>
             <tr>
                 <th>② 주 소</th>
                 <td colspan="3"><input type="text" id="user_addr" oninput="autoFitText(this)"></td>
                 <th>전자우편주소</th>
-                <td><input type="text" id="user_email"></td>
+                <td><input type="email" id="user_email"></td>
             </tr>
         </table>
         
@@ -357,14 +321,14 @@
                         <div style="flex:1; padding:0 2px; display:flex; align-items:center; justify-content:center;">
                             <input type="date" id="retire_date" required style="width: 100%;" onchange="validateAllDates(1); validateAllDates(2);">
                             <div id="retire_text" style="display:none; width:100%; text-align:center; font-size:8.5pt;">재직중</div>
-                            <label class="working-check-label" title="현재 근무 중이면 체크하세요">
+                            <label class="working-check-label" title="현재 근무 중이면 체크하세요" style="display:flex; align-items:center;">
                                 <input type="checkbox" id="chk_working" onchange="toggleRetireDate()">재직
                             </label>
                         </div>
                     </div>
                 </td>
                 <th>전화번호</th>
-                <td><input type="text" id="comp_phone" class="center-text" oninput="formatCompPhone(this)" maxlength="12"></td>
+                <td><input type="tel" id="comp_phone" class="center-text" oninput="formatCompPhone(this)" maxlength="12"></td>
             </tr>
         </table>
 
@@ -441,7 +405,7 @@
                 <td style="background-color: #f0f0f0 !important; cursor: not-allowed;"></td>
                 <td colspan="3" class="tooltip-container">
                     <input type="text" id="proj_name_1" class="left-text e1-req" onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="checkEntry1(); checkHeadquarters(1)">
-                    <div class="custom-tooltip" id="tooltip_proj_name_1">(예시) 00아파트 기계설비 유지관리, 00건물 기계설비 유지관리, 00빌딩 기계설비 유지관리, 00대학교 기계설비 유지관리</div>
+                    <div class="custom-tooltip" id="tooltip_proj_name_1">(예시) 00아파트 기계설비 유지관리, 00건물 기계설비 유지관리</div>
                 </td>
             </tr>
             <tr>
@@ -455,9 +419,7 @@
                         <tr>
                             <td style="border-left:none; border-top:none;"><input type="text" class="left-text" disabled></td>
                             <td style="border-top:none;"><input type="text" class="left-text" id="amt_1" disabled></td>
-                            <td style="border-top:none; text-align: center;">
-                                기계
-                            </td>
+                            <td style="border-top:none; text-align: center;">기계</td>
                             <td style="border-top:none; border-right:none; padding-left: 0;">
                                 <select id="spec1" class="left-text e1-req" onchange="checkSelectPlaceholder(this); checkEntry1();">
                                     <option value="">선택</option>
@@ -506,7 +468,7 @@
                 
                 <td colspan="3" class="tooltip-container e2-all">
                     <input type="text" id="proj_name_2" class="left-text e2-req e2-all" onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="checkHeadquarters(2); checkEntry2();" disabled>
-                    <div class="custom-tooltip e2-all" id="tooltip_proj_name_2" style="display: none;">(예시) 00아파트 기계설비 유지관리, 00건물 기계설비 유지관리, 00빌딩 기계설비 유지관리, 00대학교 기계설비 유지관리</div>
+                    <div class="custom-tooltip e2-all" id="tooltip_proj_name_2" style="display: none;">(예시) 00아파트 기계설비 유지관리, 00건물 기계설비 유지관리</div>
                 </td>
             </tr>
             <tr class="entry2-row">
@@ -520,9 +482,7 @@
                         <tr>
                             <td style="border-left:none; border-top:none;"><input type="text" class="left-text e2-all" disabled></td>
                             <td style="border-top:none;"><input type="text" class="left-text e2-all" disabled></td>
-                            <td style="border-top:none; text-align: center;">
-                                기계
-                            </td>
+                            <td style="border-top:none; text-align: center;">기계</td>
                             <td style="border-top:none; border-right:none; padding-left: 0;">
                                 <select id="spec2" class="left-text e2-req e2-all" onchange="checkSelectPlaceholder(this); checkEntry1(); checkEntry2();" disabled>
                                     <option value="">직무분야 선택 필요</option>
@@ -570,9 +530,9 @@
             <div style="margin-top: 10px; display:flex; justify-content:space-between; align-items:flex-end;">
                 <span style="font-size: 10pt; margin-left:5px;">위와 같이 건설기술인의 경력을 확인합니다.</span>
                 <span style="font-size: 10pt; margin-right:5px;">
-                    <input type="text" style="width:40px; text-align:right;">년
-                    <input type="text" style="width:30px; text-align:right;">월
-                    <input type="text" style="width:30px; text-align:right;">일
+                    <input type="tel" style="width:40px; text-align:right;" placeholder="202X">년
+                    <input type="tel" style="width:30px; text-align:right;" placeholder="00">월
+                    <input type="tel" style="width:30px; text-align:right;" placeholder="00">일
                 </span>
             </div>
             
@@ -596,8 +556,7 @@
                             2. ⑳ 적용 융ㆍ복합건설기술란, ㉑ 적용 신기술 등란 및 ㉒ 시설물 종류란은 발주청이나 인ㆍ허가기관의 확인이 있는 경우에만 인정됩니다.<br>
                             3. 건설기술인 본인의 서명 또는 날인이 있는 경우에는 건설기술인 경력변경신고서(「건설기술 진흥법 시행규칙」 별지 제14호서식을 말합니다)를 작성하지 않아도 되며, 입ㆍ퇴사일을 신고하는 경우 4대 보험 자료 등 증명할 수 있는 서류를 제출해야 합니다.<br>
                             4. 다수의 경력확인서를 작성해야 하는 경우에는 기술경력만을 적은 서류를 첨부하여 제출할 수 있습니다. 2장 이상은 각 장에 사용자(대표자) 또는 발주자의 확인(간인 포함)을 받아야 합니다.<br>
-                            5. 신고인(본인)의 서명 또는 날인은 본인이 직접 해야 하며 타인이 이를 위조하는 경우 「형법」 제239조에 따라 처벌 받을 수 있습니다.<br>
-                            6. 대리인이 신고하는 경우 실명확인을 위해 아래의 기재사항을 적어야 합니다.
+                            5. 신고인(본인)의 서명 또는 날인은 본인이 직접 해야 하며 타인이 이를 위조하는 경우 「형법」 제239조에 따라 처벌 받을 수 있습니다.
                         </td>
                     </tr>
                 </table>
@@ -617,23 +576,44 @@
                         <th style="background:#fff;">생년월일</th>
                         <td style="border-right:none; padding:0;">
                             <div style="display:flex; height:100%;">
-                                <input type="text" style="width:60%; text-align:center;">
+                                <input type="tel" style="width:60%; text-align:center;">
                                 <span style="border-left:1px solid #000; border-right:1px solid #000; width:100px; background:#fff; display:flex; align-items:center; justify-content:center; font-size:8pt;">연락처</span>
-                                <input type="text" style="flex-grow:1; text-align:center;">
+                                <input type="tel" style="flex-grow:1; text-align:center;">
                             </div>
                         </td>
                     </tr>
                 </table>
-            </div>
-            
-            <div style="text-align:right; font-size:8pt; margin-top:3px;">
             </div>
         </div>
         </div>
 </div>
 
 <script>
-    // 기존 스크립트 기능은 모두 그대로 유지
+    /* ★ 반응형 스케일링 스크립트 */
+    function resizeForm() {
+        const wrapper = document.getElementById('responsive-wrapper');
+        const containerWidth = 210 * 3.78; // A4 너비 (약 794px)
+        const screenWidth = window.innerWidth;
+        const padding = 10; // 여백
+
+        // 화면이 문서 원본보다 작으면 축소
+        if (screenWidth < containerWidth + (padding * 2)) {
+            const scale = (screenWidth - padding * 2) / containerWidth;
+            wrapper.style.transform = `scale(${scale})`;
+            // 스케일링으로 줄어든 만큼 높이 공간 조정 (여백 제거)
+            wrapper.style.marginBottom = `-${(1 - scale) * 100}%`;
+        } else {
+            wrapper.style.transform = 'none';
+            wrapper.style.marginBottom = '80px';
+        }
+    }
+
+    // 모바일 가로 모드 전환 감지
+    window.addEventListener("orientationchange", function() {
+        setTimeout(resizeForm, 200); // 회전 애니메이션 후 실행
+    });
+
+    /* --- [기존 로직 함수들] --- */
     function autoFitText(el) {
         el.style.letterSpacing = 'normal';
         let hiddenSpan = document.getElementById('text-measure-span');
@@ -743,12 +723,10 @@
                 if(status.allFilled) {
                     if(data['task1']) updateResponsibility(1);
                     if(data['task2']) updateResponsibility(2);
-
                     if(data['spec1']) document.getElementById('spec1').value = data['spec1'];
                     if(data['resp1']) document.getElementById('resp1').value = data['resp1'];
                     if(data['spec2']) document.getElementById('spec2').value = data['spec2'];
                     if(data['resp2']) document.getElementById('resp2').value = data['resp2'];
-
                     if(document.getElementById('spec1')) checkSelectPlaceholder(document.getElementById('spec1'));
                     if(document.getElementById('spec2')) checkSelectPlaceholder(document.getElementById('spec2'));
                 }
@@ -789,11 +767,8 @@
             const container = input.closest('.tooltip-container');
             if(container) {
                 tooltip.style.display = 'block';
-                // PC 기본 위치 (상대값)
-                if(window.innerWidth > 600) {
-                    tooltip.style.top = '24px'; 
-                    tooltip.style.left = '0px';
-                }
+                tooltip.style.top = '24px'; 
+                tooltip.style.left = '0px';
                 tooltip.classList.add('show');
             }
         }
