@@ -27,32 +27,80 @@
 
         .intro-content { position: relative; z-index: 10; width: 100%; height: 100dvh; display: block; }
 
-        /* (1) 중간 배너 (Y: 40%) */
-        .glass-banner {
-            position: absolute;
-            top: 40% !important; 
-            left: 50%; 
-            transform: translate(-50%, 0);
-            opacity: 0;
-            background: rgba(255, 255, 255, 0.1); 
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-            border-radius: 25px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            width: 85vw;
-            padding: 3vh 4vw; 
-            text-align: center; box-sizing: border-box;
-            pointer-events: auto;
-        }
+       /* [수정] 무빙 그라디언트 애니메이션 (부드러운 흐름) */
+    @keyframes borderGradientMove {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
 
-        .banner-text { 
-            color: #ffffff !important; 
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5); 
-            font-size: 4.2vw; 
-            line-height: 1.6; font-weight: 500; margin: 0;
-            white-space: pre-line; 
-            word-break: keep-all;
-        }
+    /* (1) 중간 배너 본체: 유리 효과만 담당 */
+    .glass-banner {
+        position: absolute;
+        top: 40% !important;
+        left: 50%;
+        transform: translate(-50%, 0);
+        opacity: 0;
+        
+        /* 1. 유리(Glass) 효과: 안쪽 배경 */
+        background: rgba(255, 255, 255, 0.1); 
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        
+        /* 2. 모양 설정 */
+        border-radius: 25px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        
+        /* 3. 기존 border 제거 (가상 요소가 대신함) */
+        border: none; 
+        
+        /* 4. 크기 및 레이아웃 */
+        width: 85vw;
+        padding: 3vh 4vw;
+        text-align: center; 
+        box-sizing: border-box;
+        pointer-events: auto;
+        
+        /* z-index 설정 (가상요소 배치를 위함) */
+        z-index: 10;
+    }
+
+    /* (2) [핵심] 테두리 전용 가상 요소 (::before) */
+    .glass-banner::before {
+        content: "";
+        position: absolute;
+        inset: 0; /* 부모 크기에 딱 맞춤 */
+        border-radius: 25px; /* 부모와 동일한 둥글기 */
+        padding: 3px; /* ★ 테두리 두께 조절은 여기서 하세요 ★ */
+        
+        /* 1. 무빙 그라디언트 설정 */
+        background: linear-gradient(115deg, #00F0FF, #8A2BE2, #00F0FF, #8A2BE2);
+        background-size: 300% 300%; /* 배경을 크게 늘려서 움직임 연출 */
+        animation: borderGradientMove 4s ease infinite;
+
+        /* 2. 마스크 기법: 가운데(content-box)는 뚫고, 테두리(padding)만 남김 */
+        -webkit-mask: 
+           linear-gradient(#fff 0 0) content-box, 
+           linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor; /* 가운데를 파내는 핵심 속성 */
+        mask-composite: exclude; 
+        
+        pointer-events: none; /* 클릭 방해 금지 */
+    }
+
+    /* ... (나머지 텍스트, 버튼, PC 설정 등은 기존 코드 유지) ... */
+    
+    .banner-text { 
+        /* 텍스트가 가상요소 위에 오도록 relative 설정 */
+        position: relative; 
+        z-index: 1;
+        color: #ffffff !important; 
+        text-shadow: 0 2px 10px rgba(0,0,0,0.5); 
+        font-size: 4.2vw; 
+        line-height: 1.6; font-weight: 500; margin: 0;
+        white-space: pre-line; 
+        word-break: keep-all;
+    }
         
         .gradient-text { background: linear-gradient(90deg, #4ade80 0%, #3b82f6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; display: inline-block; }
 
@@ -88,16 +136,14 @@
             to { opacity: 1; transform: translate(-50%, 0); } 
         }
 
-        /* [핵심 수정] PC 전용 설정: 글자 크기 50% 확대 적용 */
+        /* PC 전용 설정: 글자 크기 50% 확대 적용 */
         @media (min-width: 1024px) {
             .glass-banner { 
-                width: 45vw; /* 글자가 커졌으므로 너비 소폭 확대 */
+                width: 45vw; 
                 max-width: 850px; 
                 padding: 5vh 3vw; 
             }
-            /* 중간배너 글자: 1.4vw -> 2.1vw (50% 확대) */
             .banner-text { font-size: 2.1vw; }
-            /* 알약버튼 글자: 1.1vw -> 1.7vw (50% 확대) */
             .glass-pill-btn { 
                 width: 18vw; 
                 max-width: 350px; 
@@ -106,15 +152,32 @@
             }
         }
 
-        /* 모바일 가로 모드 */
-        @media (max-height: 500px) and (orientation: landscape) {
-            .footer-zone { display: none !important; }
-            .glass-banner { top: 40% !important; width: 60vw; padding: 2vh; }
-            .banner-text { font-size: 1.4vw; }
-            .glass-pill-btn { top: 75% !important; width: 20vw; padding: 1vh 0; font-size: 1.25vw; }
+       /* [수정됨] 모바일/태블릿 가로 모드 통합 설정 */
+        /* 높이 제한(max-height)을 풀고 너비(max-width)와 방향(landscape)으로 제어합니다. */
+        @media (max-width: 1023px) and (orientation: landscape) {
+            /* 1. 하단 문구 숨김 (공간 확보) */
+           /* .footer-zone { display: none !important; }*/
+
+            /* 2. 배너 위치 및 크기 최적화 */
+            .glass-banner { 
+                top: 40% !important; 
+                width: 40vw; /* 가로가 넓으므로 폭을 좁게 설정 */
+                padding: 2vh; 
+            }
+
+            /* 3. 글자 크기 축소 (세로폭이 좁으니 작게) */
+            .banner-text { font-size: 1.4vw; } /* 기존 4.2vw에서 대폭 축소 */
+            
+            /* 4. 버튼 위치 및 크기 */
+            .glass-pill-btn { 
+                top: 80% !important; /* 배너와 겹치지 않게 아래로 */
+                width: 25vw; 
+                padding: 1.5vh 0; 
+                font-size: 1.25vw; 
+            }
         }
 
-        .footer-zone { position: absolute; bottom: 3vh; width: 100%; display: flex; justify-content: center; opacity: 0; animation: fadeIn 1s 1s forwards; }
+        .footer-zone { position: absolute; bottom: 3vh; width: 100%; display: flex; justify-content: center; opacity: 1;  }
         @keyframes fadeIn { to { opacity: 1; } }
         .footer-credit { font-family: 'Jura', sans-serif; font-size: 14px; color: rgba(255,255,255,0.6); }
         .ferro-text { background: linear-gradient(90deg, #00F0FF 0%, #8A2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; }
