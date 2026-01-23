@@ -987,29 +987,54 @@ function toggleInfoBox(boxId) {
         reader.onload = function(e) {
             try {
                 const data = JSON.parse(e.target.result);
+                
+                // 1. 데이터를 먼저 폼에 채워 넣음
                 for (const [id, val] of Object.entries(data)) {
                     const el = document.getElementById(id);
                     if(el) {
                         if(el.type === 'checkbox') el.checked = val;
-                        else { el.value = val; if(id === 'user_addr' || id === 'comp_name' || id === 'comp_addr') autoFitText(el); }
+                        else { 
+                            el.value = val; 
+                            if(id === 'user_addr' || id === 'comp_name' || id === 'comp_addr') autoFitText(el); 
+                        }
                         if(el.tagName === 'SELECT') checkSelectPlaceholder(el);
                     }
                 }
+                
                 if(document.getElementById('chk_working').checked) toggleRetireDate();
-                updateSpecialty(1); updateSpecialty(2);
-                const status = checkEntry1();
-                if(status.allFilled) {
-                    if(data['task1']) updateResponsibility(1); if(data['task2']) updateResponsibility(2);
-                    if(data['spec1']) document.getElementById('spec1').value = data['spec1'];
-                    if(data['resp1']) document.getElementById('resp1').value = data['resp1'];
-                    if(data['spec2']) document.getElementById('spec2').value = data['spec2'];
-                    if(data['resp2']) document.getElementById('resp2').value = data['resp2'];
-                    if(document.getElementById('spec1')) checkSelectPlaceholder(document.getElementById('spec1'));
-                    if(document.getElementById('spec2')) checkSelectPlaceholder(document.getElementById('spec2'));
+
+                // 2. 전문분야 옵션 생성 (이때 값이 초기화됨)
+                updateSpecialty(1); 
+                updateSpecialty(2);
+
+                // ★ [핵심 수정] 옵션 생성 후, 저장된 값을 다시 강제로 주입 ★
+                if(data['spec1']) {
+                    document.getElementById('spec1').value = data['spec1'];
+                    checkSelectPlaceholder(document.getElementById('spec1'));
                 }
-                updateDayCalculations(); alert("파일 불러오기가 완료되었습니다.");
+                if(data['spec2']) {
+                    document.getElementById('spec2').value = data['spec2'];
+                    checkSelectPlaceholder(document.getElementById('spec2'));
+                }
+
+                // 3. 이제 값이 들어있는 상태에서 유효성 검사 수행
+                const status = checkEntry1();
+                
+                if(status.allFilled) {
+                    if(data['task1']) updateResponsibility(1); 
+                    if(data['task2']) updateResponsibility(2);
+                    
+                    if(data['resp1']) document.getElementById('resp1').value = data['resp1'];
+                    if(data['resp2']) document.getElementById('resp2').value = data['resp2'];
+                }
+                
+                updateDayCalculations(); 
+                alert("파일 불러오기가 완료되었습니다.");
                 isFormModified = false;
-            } catch (err) { alert("파일 형식이 올바르지 않습니다."); }
+            } catch (err) { 
+                console.error(err);
+                alert("파일 형식이 올바르지 않습니다."); 
+            }
         };
         reader.readAsText(file); input.value = '';
     }
@@ -1303,6 +1328,7 @@ if (allFilled) {
 </script>
 </body>
 </html>
+
 
 
 
