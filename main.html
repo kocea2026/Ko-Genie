@@ -799,126 +799,120 @@ function toggleInfoBox(boxId) {
         zoomEl.addEventListener('pointerleave', onPointerUp, { passive: false });
     }
 
-    /* ★★★ [JS 핵심] 3단 완전 분리 + (모바일 세로에서만) 커스텀 Zoom 제어 ★★★ */
-    function resizeForm() {
-        const wrapper = document.getElementById('responsive-wrapper');
-        const containerWidth = 794;
-        const containerHeight = 1123 + 80;
+/* ★★★ [최종 완성] resizeForm 함수 (PC 브라우저 줌 허용 버전) ★★★ */
+function resizeForm() {
+    const wrapper = document.getElementById('responsive-wrapper');
+    const containerWidth = 794; // A4 기준 너비
+    const containerHeight = 1123 + 80;
 
-        const isMobile = detectDevice();
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
-        const isLandscape = screenWidth > screenHeight;
+    const isMobile = detectDevice();
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    const isLandscape = screenWidth > screenHeight;
 
-        // [스타일 초기화]
-        document.body.style.display = '';
-        document.body.style.flexDirection = '';
-        document.body.style.alignItems = '';
-        document.body.style.justifyContent = '';
-        document.body.style.overflow = '';
-        document.body.style.overflowX = '';
-        document.body.style.overflowY = '';
-        document.body.style.padding = '';
-        document.body.style.margin = '';
+    // [1. 공통 스타일 초기화]
+    document.body.style.display = '';
+    document.body.style.flexDirection = '';
+    document.body.style.alignItems = '';
+    document.body.style.justifyContent = '';
+    document.body.style.overflow = '';
+    document.body.style.overflowX = '';
+    document.body.style.overflowY = '';
+    document.body.style.padding = '';
+    document.body.style.margin = '';
 
-        wrapper.style.transformOrigin = '';
-        wrapper.style.margin = '';
-        wrapper.style.left = '';
-        wrapper.style.top = '';
-        wrapper.style.height = '';
+    wrapper.style.transformOrigin = '';
+    wrapper.style.margin = '';
+    wrapper.style.left = '';
+    wrapper.style.top = '';
+    wrapper.style.height = '';
 
-        // 기본: meta viewport는 항상 줌 잠금(브라우저 줌 사용 X)
-        // (요구 줌은 커스텀 핀치로 구현)
-        const viewportMeta = document.getElementById('viewport-meta');
-        if (viewportMeta) {
+    // [2. Viewport Meta 태그 제어]
+    // 모바일은 제스처 충돌 방지를 위해 브라우저 줌을 막고, PC는 허용합니다.
+    const viewportMeta = document.getElementById('viewport-meta');
+    if (viewportMeta) {
+        if (!isMobile) {
+            // PC: 브라우저 기본 줌(Ctrl+휠) 허용
+            viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0');
+        } else {
+            // 모바일: 브라우저 줌 막음 (커스텀 핀치 줌 사용을 위함)
             viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-        }
-
-        /* [Case 1: 모바일 가로 모드 (Landscape)] */
-        if (isMobile && isLandscape) {
-            setZoomEnabled(false); // 가로에서는 커스텀 줌 OFF + 리셋
-
-            document.body.style.display = 'block';
-            document.body.style.overflowY = 'auto';
-            document.body.style.overflowX = 'hidden';
-            document.body.style.margin = '0';
-            document.body.style.padding = '0';
-
-            const scale = screenWidth / containerWidth;
-            currentBaseScale = scale;
-
-            wrapper.style.transform = `scale(${scale})`;
-            wrapper.style.transformOrigin = '0 0';
-            wrapper.style.margin = '0';
-
-            wrapper.style.height = 'auto';
-            document.querySelector('.page-container').style.height = '297mm';
-
-            // 줌 레이어 변환도 기본값 유지
-            applyZoomTransform(false);
-        }
-
-        /* [Case 2: 모바일 세로 모드 (Portrait)] - 커스텀 줌 ON */
-        else if (isMobile && !isLandscape) {
-            setZoomEnabled(true);
-            attachZoomHandlers();
-
-            document.body.style.display = 'flex';
-            document.body.style.flexDirection = 'column';
-            document.body.style.alignItems = 'center';
-            document.body.style.justifyContent = 'center';
-            document.body.style.overflow = 'hidden';
-
-            const padding = 10;
-            const availableWidth = screenWidth - padding;
-            const availableHeight = screenHeight;
-
-            const scaleX = availableWidth / containerWidth;
-            const scaleY = availableHeight / containerHeight;
-            const scale = Math.min(scaleX, scaleY);
-
-            currentBaseScale = scale;
-
-            wrapper.style.transform = `scale(${scale})`;
-            wrapper.style.transformOrigin = 'top center';
-
-            const heightDiff = containerHeight * (1 - scale);
-            wrapper.style.marginBottom = `-${heightDiff}px`;
-
-            // 회전/리사이즈 시 "초기값 복구" 요구: 세로 진입 시 항상 리셋
-            resetZoom();
-        }
-
-        /* [Case 3: PC 모드] */
-        else {
-            setZoomEnabled(false); // PC는 커스텀 줌 OFF
-
-            document.body.style.display = 'flex';
-            document.body.style.flexDirection = 'column';
-            document.body.style.alignItems = 'center';
-            document.body.style.justifyContent = 'center';
-            document.body.style.overflow = 'hidden';
-
-            const padding = 20;
-            const availableWidth = screenWidth - padding;
-            const availableHeight = screenHeight - padding;
-
-            const scaleX = availableWidth / containerWidth;
-            const scaleY = availableHeight / containerHeight;
-            const scale = Math.min(scaleX, scaleY);
-
-            currentBaseScale = scale;
-
-            wrapper.style.transform = `scale(${scale})`;
-            wrapper.style.transformOrigin = 'top center';
-
-            const heightDiff = containerHeight * (1 - scale);
-            wrapper.style.marginBottom = `-${heightDiff}px`;
-
-            applyZoomTransform(false);
         }
     }
 
+    /* [Case 1: 모바일 가로 모드 (Landscape)] - 기존 그대로 유지 */
+    if (isMobile && isLandscape) {
+        setZoomEnabled(false); 
+
+        document.body.style.display = 'block';
+        document.body.style.overflowY = 'auto'; // 세로 스크롤 허용
+        document.body.style.overflowX = 'hidden';
+        document.body.style.margin = '0';
+        document.body.style.padding = '0';
+
+        const scale = screenWidth / containerWidth;
+        currentBaseScale = scale;
+
+        wrapper.style.transform = `scale(${scale})`;
+        wrapper.style.transformOrigin = '0 0';
+        wrapper.style.margin = '0';
+        wrapper.style.height = 'auto';
+        document.querySelector('.page-container').style.height = '297mm';
+
+        applyZoomTransform(false);
+    }
+
+    /* [Case 2: 모바일 세로 모드 (Portrait)] - 기존 그대로 유지 (커스텀 줌 사용) */
+    else if (isMobile && !isLandscape) {
+        setZoomEnabled(true);
+        attachZoomHandlers();
+
+        document.body.style.display = 'flex';
+        document.body.style.flexDirection = 'column';
+        document.body.style.alignItems = 'center';
+        document.body.style.justifyContent = 'center';
+        document.body.style.overflow = 'hidden'; // 스크롤 막고 핀치 줌 사용
+
+        const padding = 10;
+        const availableWidth = screenWidth - padding;
+        const availableHeight = screenHeight;
+
+        const scaleX = availableWidth / containerWidth;
+        const scaleY = availableHeight / containerHeight;
+        const scale = Math.min(scaleX, scaleY);
+
+        currentBaseScale = scale;
+
+        wrapper.style.transform = `scale(${scale})`;
+        wrapper.style.transformOrigin = 'top center';
+
+        const heightDiff = containerHeight * (1 - scale);
+        wrapper.style.marginBottom = `-${heightDiff}px`;
+
+        resetZoom();
+    }
+
+    /* [Case 3: PC 모드] - 브라우저 줌 허용으로 변경됨 */
+    else {
+        setZoomEnabled(false); // PC는 커스텀 줌 끄기
+
+        // 1. 브라우저 스크롤 허용 (overflow: auto)
+        document.body.style.display = 'block';
+        document.body.style.overflow = 'auto'; 
+        document.body.style.height = 'auto';
+
+        // 2. JS 강제 스케일링 제거 (브라우저 줌 사용)
+        currentBaseScale = 1;
+        wrapper.style.transform = 'none'; 
+        
+        // 3. 문서를 화면 중앙에 배치
+        wrapper.style.margin = '30px auto'; 
+        wrapper.style.marginBottom = '100px'; 
+        
+        // 4. 줌 위치 초기화
+        applyZoomTransform(false);
+    }
+}
     window.addEventListener("resize", resizeForm);
     window.addEventListener("orientationchange", function() {
         // iOS에서 orientationchange 직후 innerHeight가 잠깐 이상해져서 약간 딜레이
@@ -1328,7 +1322,6 @@ if (allFilled) {
 </script>
 </body>
 </html>
-
 
 
 
